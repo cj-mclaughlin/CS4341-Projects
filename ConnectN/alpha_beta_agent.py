@@ -29,7 +29,7 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int]: utility value
     def utility(self, brd):
         """Heuristic function"""
-        return random.randrange(1, 5) #TODO implement
+        return self.adj_utility(brd)
     
     # Utility function based on adjacent friendly tokens
     #
@@ -38,16 +38,20 @@ class AlphaBetaAgent(agent.Agent):
     def adj_utility(self, brd):
         """Adjacent heuristic function"""
         util = 0
-        # brd.board is the [][] 
-        # brd.w and brd.h are width/height
+
         for i in range(brd.w):
             for j in range(brd.h):
-                token = brd.board[i][j]
-                for direction in range(8):
-                    
-                    if 
-                
+                token = brd.board[j][i]
 
+                # Check adjacent only for my tokens
+                if token == self.player:
+                    for direction in range(8):
+                        next_x = j + dx[direction]
+                        next_y = i + dy[direction]
+                        if self.valid_loc(next_x, next_y, brd) and brd.board[next_x][next_y] == token:
+                            util += 1
+
+        print('Utility:', util)
         return util
     
     # Utility function based on potential lines crated
@@ -95,7 +99,7 @@ class AlphaBetaAgent(agent.Agent):
             if v >= b:
                 return v
             a = max(a, v)
-            return v
+        return v
                 
     # Return min utility value 
     #
@@ -179,3 +183,12 @@ class AlphaBetaAgent(agent.Agent):
             # Add board to list of successors
             succ.append((nb,col))
         return succ
+    
+    # Check if a given coordinate is within the bounds of the board
+    # 
+    # PARAM [int] x: x-coordinate
+    # PARAM [int] y: y-coordinate
+    # PARAM [board.Board] brd: board to check location on
+    def valid_loc(self, x, y, brd):
+        """Returns true if the coordinate is withing the bounds of the board"""
+        return 0 <= x < len(brd.board) and 0 <= y < len(brd.board[0])

@@ -1,2 +1,5 @@
 __pycache__
 *.pyc
+
+# PyCharm project stuff
+.idea/

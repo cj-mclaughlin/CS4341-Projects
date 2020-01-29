@@ -13,7 +13,7 @@ g = game.Game(7, # width
               6, # height
               4, # tokens in a row to win
               agent.RandomAgent("random1"),       # player 1
-              agent.RandomAgent("random2"))       # player 2
+              aba.AlphaBetaAgent("Me", 5))       # player 2
 
 #
 # Human vs. Random

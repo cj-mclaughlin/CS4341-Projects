@@ -1,6 +1,7 @@
 import math
 import agent
 import math
+import random
 
 ###########################
 # Alpha-Beta Search Agent #
@@ -24,59 +25,78 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int]: utility value
     def utility(self, brd):
         """Heuristic function"""
-        infinity = math.inf
-        neg_infinity = -infinity
-        return 0 #TODO implement
+        return random.randrange(1, 5) #TODO implement
     
     # Return max utility value 
     #
-    # PARAM []
-    # RETURN 
-    def max_value(self, brd, a, b):
+    # PARAM [board.Board] brd: current board state
+    # PARAM [int] a: alpha value
+    # PARAM [int] b: beta value
+    # PARAM [int] current_depth: current depth
+    # RETURN [int] max utility value
+    def max_value(self, brd, a, b, current_depth):
         """Max value fn for alpha-beta search"""
         terminal = brd.get_outcome()
         if terminal == 1 or terminal == 2:
             return self.utility(brd)
+        if current_depth == self.max_depth:
+            return a
         v = -math.inf
-        for action in brd.free_cols():
-            result = brd.add_token(action)
-            v = max(v, self.min_value(result, a, b))
+        for succ in self.get_successors(brd):
+            new_board = succ[0]
+            v = max(v, self.min_value(new_board, a, b, current_depth+1))
             if v >= b:
                 return v
             a = max(a, v)
             return v
                 
-    
-    def min_value(self, brd, a, b):
+    # Return min utility value 
+    #
+    # PARAM [board.Board] brd: current board state
+    # PARAM [int] a: alpha value
+    # PARAM [int] b: beta value
+    # PARAM [int] current_depth: current depth for 
+    # RETURN [int] min utility value
+    def min_value(self, brd, a, b, current_depth):
+        """Min value fn for alpha-beta search"""
         terminal = brd.get_outcome()
         if terminal == 1 or terminal == 2:
             return self.utility(brd)
-        v = -math.inf
-        for action in brd.free_cols():
-            result = brd.add_token(action)
-            v = min(v, self.max_value(result, a,b))
+        v = math.inf
+        if current_depth == self.max_depth:
+            return b
+        for succ in self.get_successors(brd):
+            new_board = succ[0]
+            v = min(v, self.max_value(new_board, a,b, current_depth+1))
             if v < a:
                 return v
             b = min(b,v)
         return v
         
 
-        
-
-    # Perform search.
+    # Perform search and return the best action for the given state.
     #
     # PARAM [board.Board] brd: the current board state
     # RETURN [int]: the column where the token must be added
     def alpha_beta_search(self, brd):
+        """Search for the best move by evaluating available moves"""
+
         infinity = math.inf
 
         # Get values for available actions
-        vals = []
-        for result in self.get_successors(brd):
-            val = self.max_value(result[0], infinity, -infinity)
-            vals.append(val)
+        max_val = -infinity
+        max_action = None
+        for succ in self.get_successors(brd):
+            val = self.max_value(succ[0], infinity, -infinity, 1)
+            
+            # Update maximum valued action
+            if val > max_val:
+                max_val = val
+                max_action = succ[1]
         
-        for 
+        print("Wonderful AI chose to move {}".format(max_action))
+        
+        return max_action
 
 
     # Pick a column.
@@ -87,8 +107,6 @@ class AlphaBetaAgent(agent.Agent):
     # NOTE: make sure the column is legal, or you'll lose the game.
     def go(self, brd):
         """Search for the best move (choice of column for the token)"""
-        
-        # Your code here
         return self.alpha_beta_search(brd)
         
 

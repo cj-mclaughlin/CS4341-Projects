@@ -7,6 +7,10 @@ import random
 # Alpha-Beta Search Agent #
 ###########################
 
+dx = [ 0,  1,  1,  1,  0, -1, -1, -1]
+dy = [-1, -1,  0,  1,  1,  1,  0, -1]
+
+
 class AlphaBetaAgent(agent.Agent):
     """Agent that uses alpha-beta search"""
 
@@ -26,6 +30,49 @@ class AlphaBetaAgent(agent.Agent):
     def utility(self, brd):
         """Heuristic function"""
         return random.randrange(1, 5) #TODO implement
+    
+    # Utility function based on adjacent friendly tokens
+    #
+    # PARAM [board.Board] brd: the current board state
+    # RETURN [int]: utility value
+    def adj_utility(self, brd):
+        """Adjacent heuristic function"""
+        util = 0
+        # brd.board is the [][] 
+        # brd.w and brd.h are width/height
+        for i in range(brd.w):
+            for j in range(brd.h):
+                token = brd.board[i][j]
+                for direction in range(8):
+                    
+                    if 
+                
+
+        return util
+    
+    # Utility function based on potential lines crated
+    #
+    # PARAM [board.Board] brd: the current board state
+    # RETURN [int]: utility value
+    def opportunity_utility(self, brd):
+        """Opportunity heuristic function"""
+        util = 0
+        # TODO call number_in_a_row() and add weights
+        
+    # Return dictionary mapping frequency of different length symbol chains
+    #
+    # PARAM [board.Board] brd: the current board state
+    # RETURN [dict of int:int]: mapping of {length segments : number of occurances in board}
+    def number_in_a_row(self, brd):
+        """Calculates partial line segments for use in heuristics"""
+        # generate mapping of {length segments : number of occurances in board}
+        chains = dict()
+        for i in range(1, brd.board.n, 1): # initialize mapping
+            chains[i] = 0
+        
+        # TODO iterate through board and calculate frequencies        
+        return chains
+        
     
     # Return max utility value 
     #
@@ -72,7 +119,6 @@ class AlphaBetaAgent(agent.Agent):
                 return v
             b = min(b,v)
         return v
-        
 
     # Perform search and return the best action for the given state.
     #
@@ -97,7 +143,6 @@ class AlphaBetaAgent(agent.Agent):
         print("Wonderful AI chose to move {}".format(max_action))
         
         return max_action
-
 
     # Pick a column.
     #

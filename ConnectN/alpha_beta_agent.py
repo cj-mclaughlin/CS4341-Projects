@@ -73,7 +73,10 @@ class AlphaBetaAgent(agent.Agent):
         # TODO iterate through board and calculate frequencies        
         return chains
         
-    
+    def is_game_completed_heuristic(self, brd):
+        outcome = brd.get_outcome()
+        return 1 if self.player == outcome else -1
+
     # Return max utility value 
     #
     # PARAM [board.Board] brd: current board state

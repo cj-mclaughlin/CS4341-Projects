@@ -29,7 +29,13 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int]: utility value
     def utility(self, brd):
         """Heuristic function"""
-        return self.adj_utility(brd)
+        adj = self.adj_utility(brd)
+        opp = self.opportunity_utility(brd)
+        #opp = 0
+        sum_util = adj + opp
+        #sum_util = random.randrange(1,5) # random heuristic for debugging
+        print("Total utility = adjacent:{} + opportunity:{} = {}".format(adj, opp, sum_util))
+        return sum_util
     
     # Utility function based on adjacent friendly tokens
     #
@@ -51,7 +57,7 @@ class AlphaBetaAgent(agent.Agent):
                         if self.valid_loc(next_x, next_y, brd) and brd.board[next_x][next_y] == token:
                             util += 1
 
-        print('Utility:', util)
+        #print('Utility from adjacent symbols: {}'.format(util))
         return util
     
     # Utility function based on potential lines crated
@@ -61,7 +67,12 @@ class AlphaBetaAgent(agent.Agent):
     def opportunity_utility(self, brd):
         """Opportunity heuristic function"""
         util = 0
-        # TODO call number_in_a_row() and add weights
+        length_heuristic_weight = 2.5 # can play with this in different ways down the line
+        chain_mappings = self.number_in_a_row(brd)
+        for key in chain_mappings.keys():
+            util += length_heuristic_weight * key * chain_mappings[key] 
+        #print('Utility from opportunity (chains of symbols): {}'.format(util))
+        return util
         
     # Return dictionary mapping frequency of different length symbol chains
     #
@@ -71,11 +82,42 @@ class AlphaBetaAgent(agent.Agent):
         """Calculates partial line segments for use in heuristics"""
         # generate mapping of {length segments : number of occurances in board}
         chains = dict()
-        for i in range(1, brd.board.n, 1): # initialize mapping
+        for i in range(2, brd.n+1, 1): # initialize mapping
             chains[i] = 0
         
-        # TODO iterate through board and calculate frequencies        
+        # iterate through board counting chains
+        for w in range(brd.w-1):
+            for h in range(brd.h-1):
+                curr_chains = self.find_chains(brd, w, h)
+                if curr_chains[0] >= 2:
+                    chains[curr_chains[0]] += 1
+                if curr_chains[1] >= 2:
+                    chains[curr_chains[1]] += 1
+        
+        # remove double counted chains (every 3 chain is also being counted as a 2 chain -- could fix this in find_chains method or here)
+        for i in range(brd.n, 2, -1):
+            chains[i-1] -= chains[i]
+
+        #print("Mapping of consecutive symbols found: {}".format(chains)) 
         return chains
+        
+    # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
+    def find_chains(self, brd, w, h):
+        """ Find number of consecutive similar tiles in positive directions"""
+        symbol = brd.board[w][h]
+        if symbol != self.player: # if it is not our symbol, we dont care to check
+            return (0,0)
+        chain_w = 1
+        chain_h = 1
+        # check in the y (w) direction
+        while (self.valid_loc( w + chain_w,h, brd) and brd.board[w+chain_w][h] == self.player):
+            chain_w += 1
+        # check in the x (h) direction
+        while (self.valid_loc(w,h + chain_h,  brd) and brd.board[w][h+chain_h] == self.player):
+            chain_h += 1 
+        if chain_w > 2 or chain_h > 2:
+            print(w, h, chain_w, chain_h)
+        return (chain_w, chain_h)
         
     
     # Return max utility value 
@@ -91,7 +133,7 @@ class AlphaBetaAgent(agent.Agent):
         if terminal == 1 or terminal == 2:
             return self.utility(brd)
         if current_depth == self.max_depth:
-            return a
+            return self.utility(brd) # previously a
         v = -math.inf
         for succ in self.get_successors(brd):
             new_board = succ[0]
@@ -115,7 +157,7 @@ class AlphaBetaAgent(agent.Agent):
             return self.utility(brd)
         v = math.inf
         if current_depth == self.max_depth:
-            return b
+            return self.utility(brd) # previously b
         for succ in self.get_successors(brd):
             new_board = succ[0]
             v = min(v, self.max_value(new_board, a,b, current_depth+1))

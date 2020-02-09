@@ -35,8 +35,7 @@ class AlphaBetaAgent(agent.Agent):
         if (win == 10000 or win == -10000): # experimental
             adj = 0
             opp = 0
-        sum_util = adj + opp + win
-        #sum_util = random.randrange(1,5) # random heuristic for debugging
+        sum_util = adj + opp +win
         print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
         return sum_util
     
@@ -85,7 +84,7 @@ class AlphaBetaAgent(agent.Agent):
         """Calculates partial line segments for use in heuristics"""
         # generate mapping of {length segments : number of occurances in board}
         chains = dict()
-        for i in range(2, brd.n+1, 1): # initialize mapping
+        for i in range(2, brd.n+2, 1): # initialize mapping
             chains[i] = 0
         
         # iterate through board counting chains
@@ -106,6 +105,7 @@ class AlphaBetaAgent(agent.Agent):
         
     def is_game_completed_heuristic(self, brd):
         outcome = brd.get_outcome()
+        print(f'Player number: {self.player} Outcome: {outcome}')
         if outcome == self.player:
             return 10000
         elif outcome == 0:
@@ -148,7 +148,8 @@ class AlphaBetaAgent(agent.Agent):
             new_board = succ[0]
             v = max(v, self.min_value(new_board, a, b, current_depth+1))
             if v >= b:
-                return v
+                pass
+            #    return v
             a = max(a, v)
         return v
                 
@@ -171,7 +172,8 @@ class AlphaBetaAgent(agent.Agent):
             new_board = succ[0]
             v = min(v, self.max_value(new_board, a,b, current_depth+1))
             if v < a:
-                return v
+                pass
+            #    return v
             b = min(b,v)
         return v
 
@@ -188,8 +190,10 @@ class AlphaBetaAgent(agent.Agent):
         max_val = -infinity
         max_action = None
         for succ in self.get_successors(brd):
-            val = self.max_value(succ[0], infinity, -infinity, 1)
-            
+            print('Try move:', succ[1])
+            succ[0].print_it()
+            val = self.min_value(succ[0], infinity, -infinity, 1)
+            print(f'VALUE: {val}')
             # Update maximum valued action
             if val > max_val:
                 max_val = val

@@ -29,7 +29,14 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int]: utility value
     def utility(self, brd):
         """Heuristic function"""
-        return random.randrange(1, 5) #TODO implement
+        adj = self.adj_utility(brd)
+        opp = self.opportunity_utility(brd)
+        gameComplete = self.is_game_completed_heuristic
+        #opp = 0
+        sum_util = adj + opp + gameComplete
+        #sum_util = random.randrange(1,5) # random heuristic for debugging
+        print("Total utility = adjacent:{} + opportunity:{} = {} + GameComplete: {gameComplete}".format(adj, opp, sum_util, gameComplete))
+        return sum_util
     
     # Utility function based on adjacent friendly tokens
     #
@@ -38,16 +45,20 @@ class AlphaBetaAgent(agent.Agent):
     def adj_utility(self, brd):
         """Adjacent heuristic function"""
         util = 0
-        # brd.board is the [][] 
-        # brd.w and brd.h are width/height
+
         for i in range(brd.w):
             for j in range(brd.h):
-                token = brd.board[i][j]
-                for direction in range(8):
-                    
-                    if 
-                
+                token = brd.board[j][i]
 
+                # Check adjacent only for my tokens
+                if token == self.player:
+                    for direction in range(8):
+                        next_x = j + dx[direction]
+                        next_y = i + dy[direction]
+                        if self.valid_loc(next_x, next_y, brd) and brd.board[next_x][next_y] == token:
+                            util += 1
+
+        #print('Utility from adjacent symbols: {}'.format(util))
         return util
     
     # Utility function based on potential lines crated
@@ -57,7 +68,12 @@ class AlphaBetaAgent(agent.Agent):
     def opportunity_utility(self, brd):
         """Opportunity heuristic function"""
         util = 0
-        # TODO call number_in_a_row() and add weights
+        length_heuristic_weight = 2.5 # can play with this in different ways down the line
+        chain_mappings = self.number_in_a_row(brd)
+        for key in chain_mappings.keys():
+            util += length_heuristic_weight * key * chain_mappings[key] 
+        #print('Utility from opportunity (chains of symbols): {}'.format(util))
+        return util
         
     # Return dictionary mapping frequency of different length symbol chains
     #
@@ -67,16 +83,47 @@ class AlphaBetaAgent(agent.Agent):
         """Calculates partial line segments for use in heuristics"""
         # generate mapping of {length segments : number of occurances in board}
         chains = dict()
-        for i in range(1, brd.board.n, 1): # initialize mapping
+        for i in range(2, brd.n+1, 1): # initialize mapping
             chains[i] = 0
         
-        # TODO iterate through board and calculate frequencies        
+        # iterate through board counting chains
+        for w in range(brd.w-1):
+            for h in range(brd.h-1):
+                curr_chains = self.find_chains(brd, w, h)
+                if curr_chains[0] >= 2:
+                    chains[curr_chains[0]] += 1
+                if curr_chains[1] >= 2:
+                    chains[curr_chains[1]] += 1
+        
+        # remove double counted chains (every 3 chain is also being counted as a 2 chain -- could fix this in find_chains method or here)
+        for i in range(brd.n, 2, -1):
+            chains[i-1] -= chains[i]
+
+        #print("Mapping of consecutive symbols found: {}".format(chains)) 
         return chains
         
     def is_game_completed_heuristic(self, brd):
         outcome = brd.get_outcome()
-        return 1 if self.player == outcome else -1
+        return 10000 if self.player == outcome else -10000
 
+    # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
+    def find_chains(self, brd, w, h):
+        """ Find number of consecutive similar tiles in positive directions"""
+        symbol = brd.board[w][h]
+        if symbol != self.player: # if it is not our symbol, we dont care to check
+            return (0,0)
+        chain_w = 1
+        chain_h = 1
+        # check in the y (w) direction
+        while (self.valid_loc( w + chain_w,h, brd) and brd.board[w+chain_w][h] == self.player):
+            chain_w += 1
+        # check in the x (h) direction
+        while (self.valid_loc(w,h + chain_h,  brd) and brd.board[w][h+chain_h] == self.player):
+            chain_h += 1 
+        if chain_w > 2 or chain_h > 2:
+            print(w, h, chain_w, chain_h)
+        return (chain_w, chain_h)
+        
     # Return max utility value 
     #
     # PARAM [board.Board] brd: current board state
@@ -90,7 +137,7 @@ class AlphaBetaAgent(agent.Agent):
         if terminal == 1 or terminal == 2:
             return self.utility(brd)
         if current_depth == self.max_depth:
-            return a
+            return self.utility(brd) # previously a
         v = -math.inf
         for succ in self.get_successors(brd):
             new_board = succ[0]
@@ -98,7 +145,7 @@ class AlphaBetaAgent(agent.Agent):
             if v >= b:
                 return v
             a = max(a, v)
-            return v
+        return v
                 
     # Return min utility value 
     #
@@ -114,7 +161,7 @@ class AlphaBetaAgent(agent.Agent):
             return self.utility(brd)
         v = math.inf
         if current_depth == self.max_depth:
-            return b
+            return self.utility(brd) # previously b
         for succ in self.get_successors(brd):
             new_board = succ[0]
             v = min(v, self.max_value(new_board, a,b, current_depth+1))
@@ -182,3 +229,12 @@ class AlphaBetaAgent(agent.Agent):
             # Add board to list of successors
             succ.append((nb,col))
         return succ
+    
+    # Check if a given coordinate is within the bounds of the board
+    # 
+    # PARAM [int] x: x-coordinate
+    # PARAM [int] y: y-coordinate
+    # PARAM [board.Board] brd: board to check location on
+    def valid_loc(self, x, y, brd):
+        """Returns true if the coordinate is withing the bounds of the board"""
+        return 0 <= x < len(brd.board) and 0 <= y < len(brd.board[0])

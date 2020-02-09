@@ -31,11 +31,10 @@ class AlphaBetaAgent(agent.Agent):
         """Heuristic function"""
         adj = self.adj_utility(brd)
         opp = self.opportunity_utility(brd)
-        gameComplete = self.is_game_completed_heuristic
-        #opp = 0
-        sum_util = adj + opp + gameComplete
+        win = self.is_game_completed_heuristic(brd)
+        sum_util = adj + opp + win
         #sum_util = random.randrange(1,5) # random heuristic for debugging
-        print("Total utility = adjacent:{} + opportunity:{} = {} + GameComplete: {gameComplete}".format(adj, opp, sum_util, gameComplete))
+        print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
         return sum_util
     
     # Utility function based on adjacent friendly tokens

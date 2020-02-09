@@ -32,6 +32,9 @@ class AlphaBetaAgent(agent.Agent):
         adj = self.adj_utility(brd)
         opp = self.opportunity_utility(brd)
         win = self.is_game_completed_heuristic(brd)
+        if (win == 10000 or win == -10000): # experimental
+            adj = 0
+            opp = 0
         sum_util = adj + opp + win
         #sum_util = random.randrange(1,5) # random heuristic for debugging
         print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
@@ -103,7 +106,12 @@ class AlphaBetaAgent(agent.Agent):
         
     def is_game_completed_heuristic(self, brd):
         outcome = brd.get_outcome()
-        return 10000 if self.player == outcome else -10000
+        if outcome == self.player:
+            return 10000
+        elif outcome == 0:
+            return 0
+        else:
+            return -10000
 
     # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
     def find_chains(self, brd, w, h):
@@ -119,8 +127,6 @@ class AlphaBetaAgent(agent.Agent):
         # check in the x (h) direction
         while (self.valid_loc(w,h + chain_h,  brd) and brd.board[w][h+chain_h] == self.player):
             chain_h += 1 
-        if chain_w > 2 or chain_h > 2:
-            print(w, h, chain_w, chain_h)
         return (chain_w, chain_h)
         
     # Return max utility value 
@@ -189,7 +195,7 @@ class AlphaBetaAgent(agent.Agent):
                 max_val = val
                 max_action = succ[1]
         
-        print("Wonderful AI chose to move {}".format(max_action))
+        print("Wonderful AI chose move {} with heuristic value {}".format(max_action, max_val))
         
         return max_action
 

@@ -32,11 +32,11 @@ class AlphaBetaAgent(agent.Agent):
         adj = self.adj_utility(brd)
         opp = self.opportunity_utility(brd)
         win = self.is_game_completed_heuristic(brd)
-        if (win == 10000 or win == -10000): # experimental
-            adj = 0
-            opp = 0
+        # if (win == 10000 or win == -10000): # experimental
+        #     adj = 0
+        #     opp = 0
         sum_util = adj + opp +win
-        # print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
+        #print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
         return sum_util
     
     # Utility function based on adjacent friendly tokens
@@ -204,12 +204,12 @@ class AlphaBetaAgent(agent.Agent):
         
         return max_action
 
-    #Test if the board is in a terminal state
+    # Test if the board is in a terminal state
     #
     # PARAM [board.Board] brd: the current board state
     # RETURN [boolean]: true if the search is in a terminal state
     def terminalTest(self, brd, current_depth):
-        #Checks if board is in terminal state
+        # Checks if board is in terminal state
         outcome = brd.get_outcome()
         return outcome != 0 or (current_depth == self.max_depth)
 

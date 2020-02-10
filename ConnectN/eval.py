@@ -27,7 +27,7 @@ def run_evaluation(agent1, agent2, n_games=100, total_wins=0, losses=[], losing_
 
 random_agent = agent.RandomAgent("random")
 aba_agent1 = aba.AlphaBetaAgent("ab-agent1", 1)
-aba_agent2 = aba.AlphaBetaAgent("ab-agent2", 1)
+aba_agent2 = aba.AlphaBetaAgent("ab-agent2", 2)
 total_wins, losses, losing_games = run_evaluation(random_agent, aba_agent2, n_games, total_wins, losses, losing_games)
 
 print("Player 2 Won {}, lost {} (winrate = {})".format(total_wins, n_games-total_wins, total_wins/n_games))

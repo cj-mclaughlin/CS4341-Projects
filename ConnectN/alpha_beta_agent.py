@@ -138,17 +138,14 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int] max utility value
     def max_value(self, brd, a, b, current_depth):
         """Max value fn for alpha-beta search"""
-        terminal = brd.get_outcome()
-        if terminal == 1 or terminal == 2:
+        if self.terminalTest(brd, current_depth):
             return self.utility(brd)
-        if current_depth == self.max_depth:
-            return self.utility(brd) # previously a
         v = -math.inf
         for succ in self.get_successors(brd):
             new_board = succ[0]
             v = max(v, self.min_value(new_board, a, b, current_depth+1))
             if v >= b:
-                pass
+                return v
             #    return v
             a = max(a, v)
         return v
@@ -162,17 +159,14 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int] min utility value
     def min_value(self, brd, a, b, current_depth):
         """Min value fn for alpha-beta search"""
-        terminal = brd.get_outcome()
-        if terminal == 1 or terminal == 2:
+        if self.terminalTest(brd, current_depth):
             return self.utility(brd)
         v = math.inf
-        if current_depth == self.max_depth:
-            return self.utility(brd) # previously b
         for succ in self.get_successors(brd):
             new_board = succ[0]
             v = min(v, self.max_value(new_board, a,b, current_depth+1))
             if v < a:
-                pass
+                return v
             #    return v
             b = min(b,v)
         return v
@@ -202,6 +196,15 @@ class AlphaBetaAgent(agent.Agent):
         print("Wonderful AI chose move {} with heuristic value {}".format(max_action, max_val))
         
         return max_action
+
+    #Test if the board is in a terminal state
+    #
+    # PARAM [board.Board] brd: the current board state
+    # RETURN [boolean]: true if the search is in a terminal state
+    def terminalTest(self, brd, current_depth):
+        #Checks if board is in terminal state
+        outcome = brd.get_outcome()
+        return outcome != 0 or (current_depth == self.max_depth)
 
     # Pick a column.
     #

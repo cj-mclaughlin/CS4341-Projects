@@ -22,6 +22,10 @@ class AlphaBetaAgent(agent.Agent):
         super().__init__(name)
         # Max search depth
         self.max_depth = max_depth
+        # Heuristic Weights (From Genetic Algorithm)
+        self.adj_util_weight = 0.5
+        self.opp_util_weight = 0.5
+        self.win_util_weight = 0.5
 
     # Utility function
     #
@@ -29,12 +33,9 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int]: utility value
     def utility(self, brd):
         """Heuristic function"""
-        adj = self.adj_utility(brd)
-        opp = self.opportunity_utility(brd)
-        win = self.is_game_completed_heuristic(brd)
-        # if (win == 10000 or win == -10000): # experimental
-        #     adj = 0
-        #     opp = 0
+        adj = self.adj_util_weight * self.adj_utility(brd)
+        opp = self.opp_util_weight * self.opportunity_utility(brd)
+        win = self.win_util_weight * self.is_game_completed_heuristic(brd)
         sum_util = adj + opp +win
         #print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
         return sum_util
@@ -69,10 +70,10 @@ class AlphaBetaAgent(agent.Agent):
     def opportunity_utility(self, brd):
         """Opportunity heuristic function"""
         util = 0
-        length_heuristic_weight = 2.5 # can play with this in different ways down the line
         chain_mappings = self.number_in_a_row(brd)
+        # util is sum of length^2 * chain
         for key in chain_mappings.keys():
-            util += length_heuristic_weight * key * chain_mappings[key] 
+            util += key * key * chain_mappings[key] 
         # print('Utility from opportunity (chains of symbols): {}'.format(util))
         return util
         
@@ -91,43 +92,67 @@ class AlphaBetaAgent(agent.Agent):
         for w in range(brd.w-1):
             for h in range(brd.h-1):
                 curr_chains = self.find_chains(brd, w, h)
-                if curr_chains[0] >= 2:
-                    chains[curr_chains[0]] += 1
-                if curr_chains[1] >= 2:
-                    chains[curr_chains[1]] += 1
+                # add found chains to running tally
+                for i in range(4): # tuple size 4
+                    if curr_chains[i] >= 2 and curr_chains[i] < brd.n:
+                        chains[curr_chains[i]] += 1                    
         
         # remove double counted chains (every 3 chain is also being counted as a 2 chain -- could fix this in find_chains method or here)
         for i in range(brd.n, 2, -1):
             chains[i-1] -= chains[i]
 
-        # print("Mapping of consecutive symbols found: {}".format(chains)) 
+        #print("Mapping of consecutive symbols found: {}".format(chains)) 
         return chains
         
     def is_game_completed_heuristic(self, brd):
         outcome = brd.get_outcome()
-        # print(f'Player number: {self.player} Outcome: {outcome}')
         if outcome == self.player:
-            return 10000
+            return 1000
         elif outcome == 0:
             return 0
         else:
-            return -10000
+            return -1000
 
     # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
     def find_chains(self, brd, w, h):
         """ Find number of consecutive similar tiles in positive directions"""
         symbol = brd.board[w][h]
+        other_player = 0
         if symbol != self.player: # if it is not our symbol, we dont care to check
-            return (0,0)
+            return (0, 0, 0, 0)
+        if self.player == 1:
+            other_player = 2
+        else:
+            other_player = 1
         chain_w = 1
         chain_h = 1
+        chain_diag_pos = 1
+        chain_diag_neg = 1
         # check in the y (w) direction
-        while (self.valid_loc( w + chain_w,h, brd) and brd.board[w+chain_w][h] == self.player):
+        while (self.valid_loc(w + chain_w,h, brd) and brd.board[w+chain_w][h] == self.player):
             chain_w += 1
+            if not self.valid_loc(w+chain_w, h, brd) or brd.board[w+chain_w][h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+                chain_w = 0
+                break
         # check in the x (h) direction
-        while (self.valid_loc(w,h + chain_h,  brd) and brd.board[w][h+chain_h] == self.player):
+        while (self.valid_loc(w,h + chain_h, brd) and brd.board[w][h+chain_h] == self.player):
             chain_h += 1 
-        return (chain_w, chain_h)
+            if not self.valid_loc(w, h+chain_h, brd) or brd.board[w][h+chain_h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+                chain_h = 0
+                break
+        # check in +y, +h direction 
+        while (self.valid_loc(w+chain_diag_pos, h + chain_diag_pos, brd) and brd.board[w+chain_diag_pos][h+chain_diag_pos] == self.player):
+            chain_diag_pos += 1 
+            if not self.valid_loc(w+chain_diag_pos, h + chain_diag_pos, brd) or brd.board[w+chain_diag_pos][h+chain_diag_pos] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+                chain_diag_pos = 0
+                break
+        # check in -y, -h direction
+        while (self.valid_loc(w+chain_diag_neg, h + chain_diag_neg, brd) and brd.board[w+chain_diag_neg][h+chain_diag_neg] == self.player):
+            chain_diag_neg += 1 
+            if not self.valid_loc(w+chain_diag_neg, h + chain_diag_neg, brd) or brd.board[w+chain_diag_neg][h+chain_diag_neg] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+                chain_diag_neg = 0
+                break
+        return (chain_w, chain_h, chain_diag_pos, chain_diag_neg)
         
     # Return max utility value 
     #
@@ -138,7 +163,7 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int] max utility value
     def max_value(self, brd, a, b, current_depth):
         """Max value fn for alpha-beta search"""
-        if self.terminalTest(brd, current_depth):
+        if self.terminal_test(brd, current_depth):
             return (self.utility(brd), -1)
         
         v = -math.inf
@@ -154,7 +179,6 @@ class AlphaBetaAgent(agent.Agent):
 
             if v >= b:
                 return (v, argmax)
-
             a = max(a, v)
 
         return (v, argmax)
@@ -168,7 +192,7 @@ class AlphaBetaAgent(agent.Agent):
     # RETURN [int] min utility value
     def min_value(self, brd, a, b, current_depth):
         """Min value fn for alpha-beta search"""
-        if self.terminalTest(brd, current_depth):
+        if self.terminal_test(brd, current_depth):
             return (self.utility(brd), -1)
 
         v = math.inf
@@ -208,7 +232,7 @@ class AlphaBetaAgent(agent.Agent):
     #
     # PARAM [board.Board] brd: the current board state
     # RETURN [boolean]: true if the search is in a terminal state
-    def terminalTest(self, brd, current_depth):
+    def terminal_test(self, brd, current_depth):
         # Checks if board is in terminal state
         outcome = brd.get_outcome()
         return outcome != 0 or (current_depth == self.max_depth)

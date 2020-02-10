@@ -139,15 +139,25 @@ class AlphaBetaAgent(agent.Agent):
     def max_value(self, brd, a, b, current_depth):
         """Max value fn for alpha-beta search"""
         if self.terminalTest(brd, current_depth):
-            return self.utility(brd)
+            return (self.utility(brd), -1)
+        
         v = -math.inf
+        argmax = 0
+
         for succ in self.get_successors(brd):
             new_board = succ[0]
-            v = max(v, self.min_value(new_board, a, b, current_depth+1))
+            new_val = self.min_value(new_board, a, b, current_depth+1)[0]
+
+            if new_val > v:
+                v = new_val
+                argmax = succ[1]
+
             if v >= b:
-                return v
+                return (v, argmax)
+
             a = max(a, v)
-        return v
+
+        return (v, argmax)
                 
     # Return min utility value 
     #
@@ -159,15 +169,24 @@ class AlphaBetaAgent(agent.Agent):
     def min_value(self, brd, a, b, current_depth):
         """Min value fn for alpha-beta search"""
         if self.terminalTest(brd, current_depth):
-            return self.utility(brd)
+            return (self.utility(brd), -1)
+
         v = math.inf
+        argmin = 0
+
         for succ in self.get_successors(brd):
             new_board = succ[0]
-            v = min(v, self.max_value(new_board, a,b, current_depth+1))
+            new_val = self.max_value(new_board, a,b, current_depth+1)[0]
+
+            if new_val < v:
+                v = new_val
+                argmin = succ[1]
+            
             if v <= a:
-                return v
+                return (v, argmin)
             b = min(b,v)
-        return v
+
+        return (v, argmin)
 
     # Perform search and return the best action for the given state.
     #
@@ -178,15 +197,8 @@ class AlphaBetaAgent(agent.Agent):
 
         infinity = math.inf
 
-        # Get values for available actions
-        max_val = -infinity
-        max_action = None
-        for succ in self.get_successors(brd):
-            val = self.min_value(succ[0], -infinity, infinity, 1)
-            # Update maximum valued action
-            if val > max_val:
-                max_val = val
-                max_action = succ[1]
+        # Search for action with maximum value
+        (max_val, max_action) = self.max_value(brd, -infinity, infinity, 0)
         
         print("Wonderful AI chose move {} with heuristic value {}".format(max_action, max_val))
         

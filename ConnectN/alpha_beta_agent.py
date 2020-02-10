@@ -36,7 +36,7 @@ class AlphaBetaAgent(agent.Agent):
             adj = 0
             opp = 0
         sum_util = adj + opp +win
-        print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
+        # print("Total utility = adjacent:{} + opportunity:{} + win:{} = {}".format(adj, opp, win, sum_util))
         return sum_util
     
     # Utility function based on adjacent friendly tokens
@@ -59,7 +59,7 @@ class AlphaBetaAgent(agent.Agent):
                         if self.valid_loc(next_x, next_y, brd) and brd.board[next_x][next_y] == token:
                             util += 1
 
-        #print('Utility from adjacent symbols: {}'.format(util))
+        # print('Utility from adjacent symbols: {}'.format(util))
         return util
     
     # Utility function based on potential lines crated
@@ -73,7 +73,7 @@ class AlphaBetaAgent(agent.Agent):
         chain_mappings = self.number_in_a_row(brd)
         for key in chain_mappings.keys():
             util += length_heuristic_weight * key * chain_mappings[key] 
-        #print('Utility from opportunity (chains of symbols): {}'.format(util))
+        # print('Utility from opportunity (chains of symbols): {}'.format(util))
         return util
         
     # Return dictionary mapping frequency of different length symbol chains
@@ -100,12 +100,12 @@ class AlphaBetaAgent(agent.Agent):
         for i in range(brd.n, 2, -1):
             chains[i-1] -= chains[i]
 
-        #print("Mapping of consecutive symbols found: {}".format(chains)) 
+        # print("Mapping of consecutive symbols found: {}".format(chains)) 
         return chains
         
     def is_game_completed_heuristic(self, brd):
         outcome = brd.get_outcome()
-        print(f'Player number: {self.player} Outcome: {outcome}')
+        # print(f'Player number: {self.player} Outcome: {outcome}')
         if outcome == self.player:
             return 10000
         elif outcome == 0:
@@ -146,7 +146,6 @@ class AlphaBetaAgent(agent.Agent):
             v = max(v, self.min_value(new_board, a, b, current_depth+1))
             if v >= b:
                 return v
-            #    return v
             a = max(a, v)
         return v
                 
@@ -165,9 +164,8 @@ class AlphaBetaAgent(agent.Agent):
         for succ in self.get_successors(brd):
             new_board = succ[0]
             v = min(v, self.max_value(new_board, a,b, current_depth+1))
-            if v < a:
+            if v <= a:
                 return v
-            #    return v
             b = min(b,v)
         return v
 
@@ -184,10 +182,7 @@ class AlphaBetaAgent(agent.Agent):
         max_val = -infinity
         max_action = None
         for succ in self.get_successors(brd):
-            print('Try move:', succ[1])
-            succ[0].print_it()
-            val = self.min_value(succ[0], infinity, -infinity, 1)
-            print(f'VALUE: {val}')
+            val = self.min_value(succ[0], -infinity, infinity, 1)
             # Update maximum valued action
             if val > max_val:
                 max_val = val

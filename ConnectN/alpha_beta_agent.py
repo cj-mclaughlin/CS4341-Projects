@@ -131,27 +131,27 @@ class AlphaBetaAgent(agent.Agent):
         chain_diag_pos = 1
         chain_diag_neg = 1
         # check in the y (w) direction
-        while (self.valid_loc(w + chain_w,h, brd) and brd.board[w+chain_w][h] == self.player):
+        while (self.valid_loc(w + chain_w,h, brd) and brd.board[w + chain_w][h] == self.player):
             chain_w += 1
-            if not self.valid_loc(w+chain_w, h, brd) or brd.board[w+chain_w][h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+            if not self.valid_loc(w + chain_w, h, brd) or brd.board[w + chain_w][h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
                 chain_w = 0
                 break
         # check in the x (h) direction
-        while (self.valid_loc(w,h + chain_h, brd) and brd.board[w][h+chain_h] == self.player):
+        while (self.valid_loc(w,h + chain_h, brd) and brd.board[w][h + chain_h] == self.player):
             chain_h += 1 
-            if not self.valid_loc(w, h+chain_h, brd) or brd.board[w][h+chain_h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+            if not self.valid_loc(w, h + chain_h, brd) or brd.board[w][h + chain_h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
                 chain_h = 0
                 break
         # check in +y, +h direction 
-        while (self.valid_loc(w+chain_diag_pos, h + chain_diag_pos, brd) and brd.board[w+chain_diag_pos][h+chain_diag_pos] == self.player):
+        while (self.valid_loc(w + chain_diag_pos, h + chain_diag_pos, brd) and brd.board[w + chain_diag_pos][h + chain_diag_pos] == self.player):
             chain_diag_pos += 1 
-            if not self.valid_loc(w+chain_diag_pos, h + chain_diag_pos, brd) or brd.board[w+chain_diag_pos][h+chain_diag_pos] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+            if not self.valid_loc(w + chain_diag_pos, h + chain_diag_pos, brd) or brd.board[w + chain_diag_pos][h + chain_diag_pos] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
                 chain_diag_pos = 0
                 break
-        # check in -y, -h direction
-        while (self.valid_loc(w+chain_diag_neg, h + chain_diag_neg, brd) and brd.board[w+chain_diag_neg][h+chain_diag_neg] == self.player):
+        # check in -y, h direction
+        while (self.valid_loc(w + chain_diag_neg, h - chain_diag_neg, brd) and brd.board[w + chain_diag_neg][h - chain_diag_neg] == self.player):
             chain_diag_neg += 1 
-            if not self.valid_loc(w+chain_diag_neg, h + chain_diag_neg, brd) or brd.board[w+chain_diag_neg][h+chain_diag_neg] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
+            if not self.valid_loc(w + chain_diag_neg, h - chain_diag_neg, brd) or brd.board[w + chain_diag_neg][h - chain_diag_neg] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
                 chain_diag_neg = 0
                 break
         return (chain_w, chain_h, chain_diag_pos, chain_diag_neg)

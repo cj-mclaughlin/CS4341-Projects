@@ -2,6 +2,8 @@ import math
 import agent
 import math
 import random
+import board
+from ast import literal_eval
 
 ###########################
 # Alpha-Beta Search Agent #
@@ -281,3 +283,24 @@ class AlphaBetaAgent(agent.Agent):
     def valid_loc(self, x, y, brd):
         """Returns true if the coordinate is withing the bounds of the board"""
         return 0 <= x < len(brd.board) and 0 <= y < len(brd.board[0])
+
+
+def run_tests(heur_func):
+    """Read board data from test-cases.txt file and apply heuristic function, printing the result"""
+    aba = AlphaBetaAgent('Tester', 2)
+    aba.player = 1
+
+    with open('test-cases.txt') as fp:
+        while fp.readline() is not '':
+            w = int(fp.readline())
+            h = int(fp.readline())
+            n = int(fp.readline())
+            
+            board_data = []
+            for i in range(h):
+                line = fp.readline().strip()
+                board_data.insert(0, literal_eval(line))
+            brd = board.Board(board_data, w, h, n)
+            brd.print_it()
+            
+            print(heur_func.__name__[0:8] + ': ', heur_func(aba, brd))

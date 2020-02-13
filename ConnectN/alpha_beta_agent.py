@@ -10,7 +10,7 @@ from ast import literal_eval
 ###########################
 
 dx = [ 0,  1,  1,  1,  0, -1, -1, -1]
-dy = [-1, -1,  0,  1,  1,  1,  0, -1]
+dy = [ 1,  1,  0, -1, -1, -1,  0,  1]
 
 
 class AlphaBetaAgent(agent.Agent):
@@ -57,9 +57,9 @@ class AlphaBetaAgent(agent.Agent):
                 # Check adjacent only for my tokens
                 if token == self.player:
                     for direction in range(8):
-                        next_x = j + dx[direction]
-                        next_y = i + dy[direction]
-                        if self.valid_loc(next_x, next_y, brd) and brd.board[next_x][next_y] == token:
+                        next_x = i + dx[direction]
+                        next_y = j + dy[direction]
+                        if self.valid_loc(next_x, next_y, brd) and brd.board[next_y][next_x] == token:
                             util += 1
 
         # print('Utility from adjacent symbols: {}'.format(util))
@@ -91,19 +91,46 @@ class AlphaBetaAgent(agent.Agent):
             chains[i] = 0
         
         # iterate through board counting chains
-        for w in range(brd.w-1):
-            for h in range(brd.h-1):
-                curr_chains = self.find_chains(brd, w, h)
+        for x in range(brd.w):
+            for y in range(brd.h):
+                curr_chains = self.find_chains(brd, x, y)
                 # add found chains to running tally
-                for i in range(4): # tuple size 4
-                    if curr_chains[i] >= 2 and curr_chains[i] < brd.n:
-                        chains[curr_chains[i]] += 1                    
-        
-        # remove double counted chains (every 3 chain is also being counted as a 2 chain -- could fix this in find_chains method or here)
-        for i in range(brd.n, 2, -1):
-            chains[i-1] -= chains[i]
+                for chain in curr_chains:
+                    if 2 <= chain < brd.n:
+                        chains[chain] += 1
 
-        #print("Mapping of consecutive symbols found: {}".format(chains)) 
+        print("Mapping of consecutive symbols found: {}".format(chains)) 
+        return chains
+
+    # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
+    def find_chains(self, brd, x0, y0):
+        """ Find number of consecutive similar tiles in positive directions"""
+        symbol = brd.board[y0][x0]
+        other_player = 0
+        if symbol != self.player: # if it is not our symbol, we dont care to check
+            return (0, 0, 0, 0)
+        if self.player == 1:
+            other_player = 2
+        else:
+            other_player = 1
+        
+        # Initialize chain lengths
+        chains = [1 for i in range(len(dx))]
+
+        # Check in all 8 directions
+        for direction in range(len(dx)):
+            complete = False
+            for i in range(1, brd.n):
+                x = x0 + i * dx[direction]
+                y = y0 + i * dy[direction]
+                if not self.valid_loc(x, y, brd) or brd.board[y][x] == other_player:
+                    chains[direction] = 0
+                    break
+                elif brd.board[y][x] == self.player and not complete:
+                    chains[direction] += 1
+                else:
+                    complete = True
+
         return chains
         
     def is_game_completed_heuristic(self, brd):
@@ -114,47 +141,6 @@ class AlphaBetaAgent(agent.Agent):
             return 0
         else:
             return -1000
-
-    # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
-    def find_chains(self, brd, w, h):
-        """ Find number of consecutive similar tiles in positive directions"""
-        symbol = brd.board[w][h]
-        other_player = 0
-        if symbol != self.player: # if it is not our symbol, we dont care to check
-            return (0, 0, 0, 0)
-        if self.player == 1:
-            other_player = 2
-        else:
-            other_player = 1
-        chain_w = 1
-        chain_h = 1
-        chain_diag_pos = 1
-        chain_diag_neg = 1
-        # check in the y (w) direction
-        while (self.valid_loc(w + chain_w,h, brd) and brd.board[w + chain_w][h] == self.player):
-            chain_w += 1
-            if not self.valid_loc(w + chain_w, h, brd) or brd.board[w + chain_w][h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
-                chain_w = 0
-                break
-        # check in the x (h) direction
-        while (self.valid_loc(w,h + chain_h, brd) and brd.board[w][h + chain_h] == self.player):
-            chain_h += 1 
-            if not self.valid_loc(w, h + chain_h, brd) or brd.board[w][h + chain_h] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
-                chain_h = 0
-                break
-        # check in +y, +h direction 
-        while (self.valid_loc(w + chain_diag_pos, h + chain_diag_pos, brd) and brd.board[w + chain_diag_pos][h + chain_diag_pos] == self.player):
-            chain_diag_pos += 1 
-            if not self.valid_loc(w + chain_diag_pos, h + chain_diag_pos, brd) or brd.board[w + chain_diag_pos][h + chain_diag_pos] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
-                chain_diag_pos = 0
-                break
-        # check in -y, h direction
-        while (self.valid_loc(w + chain_diag_neg, h - chain_diag_neg, brd) and brd.board[w + chain_diag_neg][h - chain_diag_neg] == self.player):
-            chain_diag_neg += 1 
-            if not self.valid_loc(w + chain_diag_neg, h - chain_diag_neg, brd) or brd.board[w + chain_diag_neg][h - chain_diag_neg] == other_player: # chains shouldn't count if blocked by opponent or going out of bounds
-                chain_diag_neg = 0
-                break
-        return (chain_w, chain_h, chain_diag_pos, chain_diag_neg)
         
     # Return max utility value 
     #
@@ -281,8 +267,8 @@ class AlphaBetaAgent(agent.Agent):
     # PARAM [int] y: y-coordinate
     # PARAM [board.Board] brd: board to check location on
     def valid_loc(self, x, y, brd):
-        """Returns true if the coordinate is withing the bounds of the board"""
-        return 0 <= x < len(brd.board) and 0 <= y < len(brd.board[0])
+        """Returns true if the coordinate is within the bounds of the board"""
+        return 0 <= x < brd.w and 0 <= y < brd.h
 
 
 def run_tests(heur_func):

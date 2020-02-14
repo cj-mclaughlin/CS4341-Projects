@@ -34,7 +34,7 @@ print("Player 2 Won {}, lost {} (winrate = {})".format(total_wins, n_games-total
 print("Seeds which we lost to: {}".format(losses))
 
 print("See 'lost-games.txt' for final board state of all lost games")
-sys.stdout = open("lost-games.txt", 'w')
+sys.stdout = open("lost-games.txt", 'w+')
 for i in range(len(losing_games)):
     print("Final board for seed {}".format(losses[i]))
     losing_games[i].board.print_it()

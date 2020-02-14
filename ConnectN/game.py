@@ -2,6 +2,8 @@ import board
 import agent
 import time
 
+# TODO uncomment print statements after training
+
 ########
 # Game #
 ########
@@ -36,7 +38,7 @@ class Game(object):
             self.board.print_it()
             # Copy board so player can't modify it
             x = self.players[p].go(self.board.copy())
-            print(self.players[p].name, "move:", x)
+            ###print(self.players[p].name, "move:", x)
             if not x in self.board.free_cols():
                 print("Illegal move")
                 outcome = 1

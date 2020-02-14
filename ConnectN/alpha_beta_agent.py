@@ -20,19 +20,29 @@ class AlphaBetaAgent(agent.Agent):
     #
     # PARAM [string] name:      the name of this player
     # PARAM [int]    max_depth: the maximum search depth
-    def __init__(self, name, max_depth):
+    def __init__(self, name, max_depth, heuristic_weights=(-0.33,0.71,0.89)):
         super().__init__(name)
         # Max search depth
         self.max_depth = max_depth
         # Heuristic Weights (From Genetic Algorithm)
-        self.adj_util_weight = 0.5
-        self.opp_util_weight = 0.5
-        self.win_util_weight = 0.5
+        self.adj_util_weight = heuristic_weights[0]
+        self.opp_util_weight = heuristic_weights[1]
+        self.win_util_weight = heuristic_weights[2]
 
+    def __hash__(self):
+        return hash((self.adj_util_weight, self.opp_util_weight, self.win_util_weight))
+
+    def __eq__(self, other):
+        return (self.adj_util_weight, self.opp_util_weight, self.win_util_weight) == (other.adj_util_weight, other.opp_util_weight, other.win_util_weight)
+
+    def weights(self):
+        """Return weights"""
+        return (self.adj_util_weight, self.opp_util_weight, self.win_util_weight)
+    
     # Utility function
     #
-    # PARAM [board.Board] brd: the current board state
-    # RETURN [int]: utility value
+    # PARAM [board.Board] brd : the current board state
+    # RETURN [int] : utility value
     def utility(self, brd):
         """Heuristic function"""
         adj = self.adj_util_weight * self.adj_utility(brd)
@@ -44,8 +54,8 @@ class AlphaBetaAgent(agent.Agent):
     
     # Utility function based on adjacent friendly tokens
     #
-    # PARAM [board.Board] brd: the current board state
-    # RETURN [int]: utility value
+    # PARAM [board.Board] brd : the current board state
+    # RETURN [int] : utility value
     def adj_utility(self, brd):
         """Adjacent heuristic function"""
         util = 0
@@ -65,10 +75,10 @@ class AlphaBetaAgent(agent.Agent):
         # print('Utility from adjacent symbols: {}'.format(util))
         return util
     
-    # Utility function based on potential lines crated
+    # Utility function based on potential winning lines to be created
     #
-    # PARAM [board.Board] brd: the current board state
-    # RETURN [int]: utility value
+    # PARAM [board.Board] brd : the current board state
+    # RETURN [int] : utility value
     def opportunity_utility(self, brd):
         """Opportunity heuristic function"""
         util = 0
@@ -81,8 +91,8 @@ class AlphaBetaAgent(agent.Agent):
         
     # Return dictionary mapping frequency of different length symbol chains
     #
-    # PARAM [board.Board] brd: the current board state
-    # RETURN [dict of int:int]: mapping of {length segments : number of occurances in board}
+    # PARAM [board.Board] brd : the current board state
+    # RETURN [dict of int:int] : mapping of {length segments : number of occurances in board}
     def number_in_a_row(self, brd):
         """Calculates partial line segments for use in heuristics"""
         # generate mapping of {length segments : number of occurances in board}
@@ -99,10 +109,15 @@ class AlphaBetaAgent(agent.Agent):
                     if 2 <= chain < brd.n:
                         chains[chain] += 1
 
-        print("Mapping of consecutive symbols found: {}".format(chains)) 
+        # print("Mapping of consecutive symbols found: {}".format(chains)) 
         return chains
 
-    # Return tuple (chain_w, chain_h) containing the number of consecutive similar symbols in positive w/h direction starting from location w,h
+    # Return list of ints representing the number of consecutive player tokens in each direction starting from location x0, y0
+    #
+    # PARAM [board.Board] brd : the current board state
+    # PARAM [int] x0 : x-coordinate of location to check for chains
+    # PARAM [int] x0 : y-coordinate of location to check for chains
+    # RETURN [list of int] : chain size in each direction, 0 represents blocked winning line
     def find_chains(self, brd, x0, y0):
         """ Find number of consecutive similar tiles in positive directions"""
         symbol = brd.board[y0][x0]
@@ -132,8 +147,13 @@ class AlphaBetaAgent(agent.Agent):
                     complete = True
 
         return chains
-        
+    
+    # Utility function based on outcome of the board
+    #
+    # PARAM [board.Board] brd : the current board state
+    # RETURN [int] : utility value
     def is_game_completed_heuristic(self, brd):
+        """Returns a very high utility for a winning board, very low utility for losing"""
         outcome = brd.get_outcome()
         if outcome == self.player:
             return 1000
@@ -142,13 +162,13 @@ class AlphaBetaAgent(agent.Agent):
         else:
             return -1000
         
-    # Return max utility value 
+    # Return max utility value and the argmax
     #
     # PARAM [board.Board] brd: current board state
     # PARAM [int] a: alpha value
     # PARAM [int] b: beta value
-    # PARAM [int] current_depth: current depth
-    # RETURN [int] max utility value
+    # PARAM [int] current_depth: current depth of search
+    # RETURN [tuple(int, int)] : tuple of max utility value and argmax (the move to select it)
     def max_value(self, brd, a, b, current_depth):
         """Max value fn for alpha-beta search"""
         if self.terminal_test(brd, current_depth):
@@ -171,13 +191,13 @@ class AlphaBetaAgent(agent.Agent):
 
         return (v, argmax)
                 
-    # Return min utility value 
+    # Return min utility value and the argmin
     #
     # PARAM [board.Board] brd: current board state
     # PARAM [int] a: alpha value
     # PARAM [int] b: beta value
-    # PARAM [int] current_depth: current depth for 
-    # RETURN [int] min utility value
+    # PARAM [int] current_depth: current depth of search
+    # RETURN [tuple(int, int)] : tuple of min utility value and argmin (the move to select it)
     def min_value(self, brd, a, b, current_depth):
         """Min value fn for alpha-beta search"""
         if self.terminal_test(brd, current_depth):
@@ -212,7 +232,7 @@ class AlphaBetaAgent(agent.Agent):
         # Search for action with maximum value
         (max_val, max_action) = self.max_value(brd, -infinity, infinity, 0)
         
-        print("Wonderful AI chose move {} with heuristic value {}".format(max_action, max_val))
+        #print("Wonderful AI chose move {} with heuristic value {}".format(max_action, max_val))
         
         return max_action
 
@@ -221,7 +241,7 @@ class AlphaBetaAgent(agent.Agent):
     # PARAM [board.Board] brd: the current board state
     # RETURN [boolean]: true if the search is in a terminal state
     def terminal_test(self, brd, current_depth):
-        # Checks if board is in terminal state
+        """Checks if board is in terminal state"""
         outcome = brd.get_outcome()
         return outcome != 0 or (current_depth == self.max_depth)
 
@@ -263,14 +283,17 @@ class AlphaBetaAgent(agent.Agent):
     
     # Check if a given coordinate is within the bounds of the board
     # 
-    # PARAM [int] x: x-coordinate
-    # PARAM [int] y: y-coordinate
-    # PARAM [board.Board] brd: board to check location on
+    # PARAM [int] x : x-coordinate
+    # PARAM [int] y : y-coordinate
+    # PARAM [board.Board] brd : board to check location on
     def valid_loc(self, x, y, brd):
         """Returns true if the coordinate is within the bounds of the board"""
         return 0 <= x < brd.w and 0 <= y < brd.h
 
 
+# Check heuristic functions using boards in test_cases.txt
+#
+# PARAM [func] heur_func : heuristic function to test (e.g. AlphaBetaAgent.opportunity_heuristic)
 def run_tests(heur_func):
     """Read board data from test-cases.txt file and apply heuristic function, printing the result"""
     aba = AlphaBetaAgent('Tester', 2)

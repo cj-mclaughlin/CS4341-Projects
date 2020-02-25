@@ -1,0 +1,31 @@
+Things NN needs
+---------------------------------------
+Feature Vectors
+Rewards - % passed scenerios, score(turn-count)
+Actions
+
+Gui/World
+------------
+bomb_fuse_time
+bomb_explosion_range
+bomb_explosion_duration
+(Above three do not change)
+
+
+Rewards
+--------------
+- Death
+- Being alive (adds a sense of urgency)
+
++ Killing a monster
++ Winning
+
+Features for our approximate Q-learning Vector
+----------------------------------------------------------------
+Turn count
+Dist to rewards 
+dx,dy to nearest monster
+bombs_left?
+lives?
+threat of monsters?
+

@@ -1,6 +1,7 @@
 import actions
 import math
-# Distance Functions
+
+#Distance Functions
 
 # Function that quantifies how far the player is from the exit
 # PARAM[SensedWorld] state: the current state of the map
@@ -52,4 +53,77 @@ def valid_location(state, new_x, new_y):
 def manhattan_dist(x1, y1, x2, y2):
     return abs(x1-x2) + abs(y1-y2)
 
+  
 #Bomb functions
+
+# Checks if we are near a blocking wall
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def wall_in_bomb_range(world, action):
+    """Checks if we are against a complete blocking wall (bomb necessary)"""
+    
+    # Checking for horizontal wall below character
+    character = find_char(world)
+    blocked_by_wall = True
+    
+    for w in range(world.width()):
+        if not world.wall_at(w, character.y + 1):
+            blocked_by_wall = False
+            break
+    
+    # TODO decide if we only want this retval if action=place bomb
+    if (blocked_by_wall):
+        return 1
+    
+    return 0
+
+# Checks if we are in the explosion radius of an active bomb
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def bomb_danger_zone(world, action):
+    """Checks if action places character in explosion range"""
+    character = find_char(world)
+    in_explosion_radius = False
+    
+    # Check if a bomb is active
+    bomb = find_bomb(world)
+    if bomb is None:
+        return 0
+
+    # check if we are in the x component of explosion
+    if (abs(character.x - bomb.x) <= 4 and character.y == bomb.y):
+        in_explosion_radius = True
+    # y component
+    elif (abs(character.y - bomb.y) <= 4 and character.x == bomb.x):
+        in_explosion_radius = True
+    
+    # TODO scale urgency based on how close we are to fuse
+    if (in_explosion_radius):
+        return 1
+    else: 
+        return 0
+      
+
+# TODO update find_methods to be constant lookups, or a single o(n^2) search
+
+# Helper method to find bomb (hopefully we can just index in the future)
+# PARAM[SensedWorld] state: the current state of the map
+def find_bomb(world):
+    # TODO find without O(n^2 search)
+    for w in range(world.width()):
+        for h in range(world.height()):
+            bomb = world.bomb_at(w, h)
+            if bomb is not None:
+                return bomb
+            
+# Helper method to find character (hopefully we can just index in the future)
+# PARAM[SensedWorld] state: the current state of the map
+def find_char(world):
+    # TODO find without O(n^2 search)
+    for w in range(world.width()):
+        for h in range(world.height()):
+            char = world.characters_at(w, h)
+            if char is not None:
+                return char[0]

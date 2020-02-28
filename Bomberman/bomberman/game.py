@@ -4,6 +4,8 @@ import colorama
 import pygame
 import math
 
+from qlearning import featurefunctions
+
 class Game:
     """Game class"""
 
@@ -96,6 +98,7 @@ class Game:
         if wait is 0:
             def step():
                 pygame.event.clear()
+                # print(featurefunctions.bomb_danger_zone(self.world, None))
                 input("Press Enter to continue or CTRL-C to stop...")
         else:
             def step():

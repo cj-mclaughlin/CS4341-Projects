@@ -1,5 +1,5 @@
 import actions
-
+import math
 # Distance Functions
 
 # Function that quantifies how far the player is from the exit
@@ -25,6 +25,14 @@ def distToMonster(state, action, character):
     x_dir, y_dir = actions.ActionDirections[action]
     cur_x, cur_y = character.x, character.y
     new_x, new_y = x_dir+cur_x, y_dir+cur_y
+
+    #Check that new position is valid and if not calculate move function based on current position
+    if(not valid_location(state, new_x, new_y)):
+        new_x, new_y = cur_x, cur_y
+    
+    # TODO Find the closest monster coordinates
+    c_mon_x, c_mon_y, c_mon_dist = math.inf, math.inf, math.inf
+    #for mon in state.monsters.
 
 # Check that the new position is a valid move
 # PARAM[SensedWorld] state: the state of the current board

@@ -1,13 +1,19 @@
-import actions
+import os, sys
 import math
+
+file_dir = os.path.dirname(__file__)
+sys.path.append(file_dir)
+
+import actions
 
 #Distance Functions
 
 # Function that quantifies how far the player is from the exit
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def distToExit(state, action, character):
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for # TODO reimplement
+def dist_to_exit(state, action):
+    character = find_char(state) # temp
     x_dir, y_dir = actions.ActionDirections[action]
     cur_x, cur_y = character.x, character.y
     new_x, new_y = x_dir+cur_x, y_dir+cur_y
@@ -21,8 +27,9 @@ def distToExit(state, action, character):
 # TODO Function that quantifies how far the player is from the nearest monster
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def distToMonster(state, action, character):
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for # TODO reimplement
+def dist_to_monster(state, action):
+    character = find_char(state) # temp
     x_dir, y_dir = actions.ActionDirections[action]
     cur_x, cur_y = character.x, character.y
     new_x, new_y = x_dir+cur_x, y_dir+cur_y
@@ -30,6 +37,10 @@ def distToMonster(state, action, character):
     #Check that new position is valid and if not calculate move function based on current position
     if(not valid_location(state, new_x, new_y)):
         new_x, new_y = cur_x, cur_y
+    
+    
+    # TODO temporary
+    return 0
     
     # TODO Find the closest monster coordinates
     c_mon_x, c_mon_y, c_mon_dist = math.inf, math.inf, math.inf
@@ -57,9 +68,8 @@ def manhattan_dist(x1, y1, x2, y2):
 #Bomb functions
 
 # Checks if we are near a blocking wall
-# PARAM[SensedWorld] state: the current state of the map
+# PARAM[SensedWorld] world: the current state of the map
 # PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def wall_in_bomb_range(world, action):
     """Checks if we are against a complete blocking wall (bomb necessary)"""
     
@@ -79,9 +89,8 @@ def wall_in_bomb_range(world, action):
     return 0
 
 # Checks if we are in the explosion radius of an active bomb
-# PARAM[SensedWorld] state: the current state of the map
+# PARAM[SensedWorld] world: the current state of the map
 # PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def bomb_danger_zone(world, action):
     """Checks if action places character in explosion range"""
     character = find_char(world)
@@ -106,12 +115,12 @@ def bomb_danger_zone(world, action):
         return 0
       
 
-# TODO update find_methods to be constant lookups, or a single o(n^2) search
+# TODO update find_methods to be constant lookups, or a single search
 
 # Helper method to find bomb (hopefully we can just index in the future)
-# PARAM[SensedWorld] state: the current state of the map
+# PARAM[SensedWorld] world: the current state of the map
 def find_bomb(world):
-    # TODO find without O(n^2 search)
+    # TODO find without search
     for w in range(world.width()):
         for h in range(world.height()):
             bomb = world.bomb_at(w, h)
@@ -119,9 +128,9 @@ def find_bomb(world):
                 return bomb
             
 # Helper method to find character (hopefully we can just index in the future)
-# PARAM[SensedWorld] state: the current state of the map
+# PARAM[SensedWorld] world: the current state of the map
 def find_char(world):
-    # TODO find without O(n^2 search)
+    # TODO find without search
     for w in range(world.width()):
         for h in range(world.height()):
             char = world.characters_at(w, h)

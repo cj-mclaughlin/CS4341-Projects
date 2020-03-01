@@ -11,9 +11,8 @@ import actions
 # Function that quantifies how far the player is from the exit
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for # TODO reimplement
-def dist_to_exit(state, action):
-    character = find_char(state) # temp
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def dist_to_exit(state, action, character):
     x_dir, y_dir = actions.ActionDirections[action]
     cur_x, cur_y = character.x, character.y
     new_x, new_y = x_dir+cur_x, y_dir+cur_y
@@ -27,9 +26,8 @@ def dist_to_exit(state, action):
 # TODO Function that quantifies how far the player is from the nearest monster
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for # TODO reimplement
-def dist_to_monster(state, action):
-    character = find_char(state) # temp
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def dist_to_monster(state, action, character):
     x_dir, y_dir = actions.ActionDirections[action]
     cur_x, cur_y = character.x, character.y
     new_x, new_y = x_dir+cur_x, y_dir+cur_y
@@ -136,3 +134,11 @@ def find_char(world):
             char = world.characters_at(w, h)
             if char is not None:
                 return char[0]
+
+# Export of the feature functions
+feature_functions = [
+    dist_to_exit,
+    dist_to_monster,
+    bomb_danger_zone,
+    wall_in_bomb_range
+]

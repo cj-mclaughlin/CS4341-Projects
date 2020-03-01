@@ -15,8 +15,9 @@ import featurefunctions as fn
 # TODO verify if working :)
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
-        self.weights = [1, 1, 1, 1]
-        self.feature_functions = [fn.dist_to_exit, fn.dist_to_monster, fn.wall_in_bomb_range, fn.bomb_danger_zone]
+        #TODO don't hardcode
+        self.weights = [1,1,1,1]
+        self.feature_functions = fn.feature_functions
         super().__init__(name, avatar, x, y)
 
     def evaluate_move(self, state, action):

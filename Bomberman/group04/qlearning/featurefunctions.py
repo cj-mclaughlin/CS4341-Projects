@@ -6,6 +6,8 @@ sys.path.append(file_dir)
 
 import actions
 
+# TODO finish dist_to_monster and dist_to_search_path
+
 #Distance Functions
 
 # Function that quantifies how far the player is from the exit
@@ -34,6 +36,18 @@ def dist_to_monster(state, action, character):
     # TODO Find the closest monster coordinates
     c_mon_x, c_mon_y, c_mon_dist = math.inf, math.inf, math.inf
     #for mon in state.monsters.
+
+# TODO Function that checks if move puts us on path to solution (A*/bfs)
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def dist_to_search_path(state, action, character):
+    """Check if we are getting closer/further from 'optimal' path"""
+    new_x, new_y = post_action_location(state, action, character)
+
+    # TODO implement
+    return 0
+    
 
 # Check that the new position is a valid move
 # PARAM[SensedWorld] state: the state of the current board
@@ -81,7 +95,6 @@ def wall_in_bomb_range(state, action, character):
     return 0
 
 # Evaluates danger zone of ticking bombs and active explosions
-    # TODO decide if we only want this retval if action=place bomb
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for

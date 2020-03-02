@@ -23,8 +23,8 @@ class QAgent(CharacterEntity):
     def evaluate_move(self, state, action):
         move_util = 0
         for i in range(len(self.weights)):
-            print("action {}, {},{}".format(i, self.weights[i], self.feature_functions[i](state, action)))
-            move_util += self.weights[i] * self.feature_functions[i](state, action)
+            print("action {}, {},{}".format(i, self.weights[i], self.feature_functions[i](state, action, self)))
+            move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
 
 

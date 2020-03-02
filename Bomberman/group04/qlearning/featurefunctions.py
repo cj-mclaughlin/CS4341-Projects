@@ -68,7 +68,7 @@ def manhattan_dist(x1, y1, x2, y2):
 # Checks if we are near a blocking wall
 # PARAM[SensedWorld] world: the current state of the map
 # PARAM[Action] action: the action to evaluate
-def wall_in_bomb_range(world, action):
+def wall_in_bomb_range(world, action, character):
     """Checks if we are against a complete blocking wall (bomb necessary)"""
     
     # Checking for horizontal wall below character
@@ -89,7 +89,7 @@ def wall_in_bomb_range(world, action):
 # Checks if we are in the explosion radius of an active bomb
 # PARAM[SensedWorld] world: the current state of the map
 # PARAM[Action] action: the action to evaluate
-def bomb_danger_zone(world, action):
+def bomb_danger_zone(world, action, character):
     """Checks if action places character in explosion range"""
     character = find_char(world)
     in_explosion_radius = False

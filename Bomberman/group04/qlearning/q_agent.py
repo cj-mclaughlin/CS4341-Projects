@@ -22,8 +22,9 @@ class QAgent(CharacterEntity):
 
     def evaluate_move(self, state, action):
         move_util = 0
+        print("Evaluating action {}".format(action))
         for i in range(len(self.weights)):
-            print("action {}, {},{}".format(i, self.weights[i], self.feature_functions[i](state, action, self)))
+            print("fn {} yielding {}*{}".format(i, self.weights[i], self.feature_functions[i](state, action, self)))
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
 
@@ -38,7 +39,7 @@ class ExploitationAgent(QAgent):
         best_action = None
         best_action_val = -math.inf
         for a in Action:
-             if super().evaluate_move(world, a) > best_action_val:
+             if super().evaluate_move(world, a) > best_action_val and self.valid_action(world, a):
                  best_action = a
                  best_action_val = super().evaluate_move(world, a)
         if best_action == Action.BOMB:
@@ -46,6 +47,12 @@ class ExploitationAgent(QAgent):
         else:
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])
+            
+    def valid_action(self, world, action):
+        direction = ActionDirections[action]
+        if (self.x + direction[0] < 0 or self.y + direction[1] < 0):
+            return False
+        return True
 
 
 # Sanity Check

@@ -13,31 +13,22 @@ import actions
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def dist_to_exit(state, action, character):
-    x_dir, y_dir = actions.ActionDirections[action]
-    cur_x, cur_y = character.x, character.y
-    new_x, new_y = x_dir+cur_x, y_dir+cur_y
+    """Check if we are getting closer or further from the exit"""
+    new_x, new_y = post_action_location(state, action, character)
     exit_x, exit_y = state.exitcell
-    #Check that new position is valid and if not calculate move function based on current position
-    if(not valid_location(state, new_x, new_y)):
-        new_x, new_y = cur_x, cur_y
-    #Calculate manhatan distance between two points
-    return manhattan_dist(new_x, new_y, exit_x, exit_y)
+    
+    # TODO figure if we want to normalize this or what, closer should be higher vals, incentive
+    return 1 / manhattan_dist(new_x, new_y, exit_x, exit_y)
 
 # TODO Function that quantifies how far the player is from the nearest monster
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def dist_to_monster(state, action, character):
-    x_dir, y_dir = actions.ActionDirections[action]
-    cur_x, cur_y = character.x, character.y
-    new_x, new_y = x_dir+cur_x, y_dir+cur_y
-
-    #Check that new position is valid and if not calculate move function based on current position
-    if(not valid_location(state, new_x, new_y)):
-        new_x, new_y = cur_x, cur_y
+    """Check if we are getting closer/further from a monster"""
+    new_x, new_y = post_action_location(state, action, character)
     
-    
-    # TODO temporary
+    # TODO remove temporary fix
     return 0
     
     # TODO Find the closest monster coordinates
@@ -50,8 +41,11 @@ def dist_to_monster(state, action, character):
 # PARAM[int] new_y: the value of the new y coordinate of the position to check
 # RETURN[boolean] : whether the new move is valid
 def valid_location(state, new_x, new_y):
+    """Check if we are going out of bounds or into a wall"""
     #Check that there is no wall in the new position
-    return state.wall_at(new_x, new_y)
+    if (new_x < 0 or new_y < 0 or new_x >= state.width() or new_y >= state.height() or state.wall_at(new_x, new_y)):
+        return False
+    return True
 
 # Calculates the manhattan distance between two points
 # PARAM[int] x1: X value of the first point
@@ -60,80 +54,100 @@ def valid_location(state, new_x, new_y):
 # PARAM[int] y2: Y value of the second point
 # RETURN[int] : the manhattan distance between two points
 def manhattan_dist(x1, y1, x2, y2):
+    """Manhattan distance"""
     return abs(x1-x2) + abs(y1-y2)
 
   
 #Bomb functions
 
 # Checks if we are near a blocking wall
-# PARAM[SensedWorld] world: the current state of the map
+# PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
-def wall_in_bomb_range(world, action, character):
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def wall_in_bomb_range(state, action, character):
     """Checks if we are against a complete blocking wall (bomb necessary)"""
-    
-    # Checking for horizontal wall below character
-    character = find_char(world)
+    char_x, char_y = post_action_location(state, action, character)
     blocked_by_wall = True
     
-    for w in range(world.width()):
-        if not world.wall_at(w, character.y + 1):
+    # Checking for horizontal wall below character (assumes horizontal walls and exit in +y direction)
+    for w in range(state.width()):
+        if not state.wall_at(w, char_y + 1):
             blocked_by_wall = False
             break
     
-    # TODO decide if we only want this retval if action=place bomb
-    if (blocked_by_wall):
+    if (blocked_by_wall and action == actions.Action.BOMB):
         return 1
     
     return 0
 
-# Checks if we are in the explosion radius of an active bomb
-# PARAM[SensedWorld] world: the current state of the map
+# Evaluates danger zone of ticking bombs and active explosions
+    # TODO decide if we only want this retval if action=place bomb
+# PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
-def bomb_danger_zone(world, action, character):
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def bomb_danger_zone(state, action, character):
     """Checks if action places character in explosion range"""
-    character = find_char(world)
+    char_x, char_y = post_action_location(state, action, character)
     in_explosion_radius = False
-    
+    ticking_bomb = False
+        
     # Check if a bomb is active
-    bomb = find_bomb(world)
-    if bomb is None:
-        return 0
+    bomb = find_bomb(state)
+    if bomb is not None:
+        ticking_bomb = True
 
-    # check if we are in the x component of explosion
-    if (abs(character.x - bomb.x) <= 4 and character.y == bomb.y):
-        in_explosion_radius = True
-    # y component
-    elif (abs(character.y - bomb.y) <= 4 and character.x == bomb.x):
-        in_explosion_radius = True
+
+    # checks for active bomb
+    if (ticking_bomb):
+        # check if we are in the x component of explosion
+        if (abs(char_x - bomb.x) <= 4 and char_y == bomb.y):
+            in_explosion_radius = True
+        # y component
+        elif (abs(char_y - bomb.y) <= 4 and char_x == bomb.x):
+            in_explosion_radius = True
+    
+    # checks for active explosions
+    if (state.explosion_at(char_x, char_y)):
+        # really bad
+        return 1
+    
     
     # TODO scale urgency based on how close we are to fuse
     if (in_explosion_radius):
-        return 1
-    else: 
-        return 0
-      
+        # more bad depending on how close bomb is to going off
+        return 1 / bomb.timer
+    
+    return 0 # no active bombs or explosion on new tile
 
-# TODO update find_methods to be constant lookups, or a single search
+
+# Returns the locaton of character after taking action in state
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def post_action_location(state, action, character):
+    """Returns where we would be after taking specified action"""
+    x_dir, y_dir = actions.ActionDirections[action]
+    cur_x, cur_y = character.x, character.y
+    new_x, new_y = x_dir+cur_x, y_dir+cur_y
+
+    # See if action would put us out of bounds or into a wall (no effective movement)
+    if(not valid_location(state, new_x, new_y)):
+        new_x, new_y = cur_x, cur_y
+    
+    return new_x, new_y
+
+
+# TODO update find_bomb to be constant lookup instead of search if possible
 
 # Helper method to find bomb (hopefully we can just index in the future)
-# PARAM[SensedWorld] world: the current state of the map
-def find_bomb(world):
-    # TODO find without search
-    for w in range(world.width()):
-        for h in range(world.height()):
-            bomb = world.bomb_at(w, h)
+# PARAM[SensedWorld] state: the current state of the map
+def find_bomb(state):
+    """Returns active bomb if one exists, None otherwise"""
+    for w in range(state.width()):
+        for h in range(state.height()):
+            bomb = state.bomb_at(w, h)
             if bomb is not None:
                 return bomb
-            
-# Helper method to find character (hopefully we can just index in the future)
-# PARAM[SensedWorld] world: the current state of the map
-def find_char(world):
-    # TODO find without search
-    for w in range(world.width()):
-        for h in range(world.height()):
-            char = world.characters_at(w, h)
-            if char is not None:
-                return char[0]
 
 # Export of the feature functions
 feature_functions = [

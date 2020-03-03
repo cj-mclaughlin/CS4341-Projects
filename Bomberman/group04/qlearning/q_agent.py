@@ -59,16 +59,32 @@ class ExploitationAgent(QAgent):
 class ExplorationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)
-        self.alpha = 1
+        self.inital_alpha = 1
+        self.alpha = self.inital_alpha
         self.generation = 1
         self.weights_filename = "bomberman_weights.txt"
        
-    # Connor
-    # TODO
-    def update_alpha(self):
-        pass
+    # Update alpha with exponential decay
+    # PARAM[float] k: scale factor for exponential decay
+    def update_alpha(self, k=0.1):
+        self.alpha = self.inital_alpha * math.exp(-k*self.generation)
     
-    # Connor
-    # TODO
-    def update_weights(self, reward):
-        pass
+    # Update weights after taking a step in world
+    # PARAM[float] reward: reward recieved for last action in world
+    # PARAM[SensedWorld] current_state: the state of the world
+    # PARAM[Action] current_action: the action to evaluate
+    # PARAM[float] current_utility: sum utility evaluaton for (current_state, current_action)
+    # PARAM[SensedWorld] next_state: the state of the world after action
+    # PARAM[Action] next_action: the best action after entering next state (argmax)
+    # PARAM[float] discount: discounting rate
+    def update_weights(self, reward, current_state, current_action, current_utility, next_state, next_action, discount=0.9):
+        # delta = r + v(max(a')(Q(s',a'))) - Q(s,a)
+        delta = (reward + (discount*self.evaluate_move(next_state, next_action))) - current_utility
+        # wi = wi + a*delta*fi(s,a)
+        for w_idx in range(len(self.weights)):
+            self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action)
+        # update alpha
+        self.update_alpha()
+        
+        # update generation
+        self.generation += 1

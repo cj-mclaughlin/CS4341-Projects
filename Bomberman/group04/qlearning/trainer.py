@@ -5,42 +5,69 @@ sys.path.insert(1, '..')
 from game import Game
 from qlearning import q_agent
 import pygame as pg
+from events import Event
 
-# TODO potentially move to other file
+# Class responsible for reinforcement learning of a specified agent
 class Trainer():
-    def __init__(self, ExplorationAgent):
-        self.agent = ExplorationAgent
+    def __init__(self, agent):
+        self.agent = agent
     
     # Vlad
     # Takes the current agent and plays each scenario 10 times
-    # Then saves information for each scenario and weights to a file
+    # Then returns the winrate for each scenario
     def evaluate_winrate(self):
-        # freeze weights and play scenarios
+        num_runs_per_scenario = 10
+        scenario_winrate = {
+            1 : 0,
+            2: 0,
+            3: 0,
+            4 : 0,
+            5: 0,
+            6: 0,
+            7 : 0,
+            8: 0,
+            9: 0,
+            10: 0
+        }
         # Create a queue of scenarios to play
-        # Loop through playing scenarios and get win rate
-        # Serialize win rate and agent paramters
-        self.write_progress()
-        pass
-
-    
+        #TODO after have all scenarios accessible
+        scenarios = []
+        # Loop through playing scenarios and get win rate for each scenario
+        for i in range(len(scenarios)):
+            num_wins = 0
+            for j in range(num_runs_per_scenario):
+                won = scenarios[i].go(freeze_weights = True)
+                if(won):
+                    num_wins += 1
+            scenario_winrate[i] = num_wins/num_runs_per_scenario
+        return scenario_winrate
+   
     # Vlad
     # Train the agent that is  
     def train(self):
         # select scenarios
-
-        scenarios = self.select_scenarios() # assuming it gives more than one scenario
-
-        # update weights while doing scenarios
-        # write progress every output_frequency generations
-        pass 
+        num_episodes = 25
+        num_generations = 10
+        for generation_number in range(num_generations):
+            self.run_generation(num_episodes)
+            self.write_progress() 
     
-    def select_scenerios(self, num_scenerios):
-        pass
+    def run_generation(self, num_episodes):
+        episodes = self.select_scenarios(num_episodes)
+        for episode in episodes:
+            episode.go(freeze_weights = False)
+
+
+    def select_scenarios(self, num_scenerios):
+        scenarios = []
+        for i in range(0, num_scenerios):
+            scenarios.append(self.select_scenario())
+        return scenarios
 
     # Connor
     # TODO
     def select_scenario(self):
-        pass
+        TrainingGame.fromfile('map.txt')
     
     # Connor
     # Output generation #, weights and current winrate after playing each scenarios 10x to file
@@ -55,10 +82,16 @@ class Trainer():
 class TrainingGame(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):
         super().__init__(width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir)
-        #self.agent = agent
     
-    #Overload go function to run
-    def go(self, wait=0):
+    def set_agent(self, agent):
+        self.agent = agent
+
+    def set_reward_function(self, reward_fn):
+        self.reward_fn = reward_fn
+
+    # Overload go function to run
+    # RETURN [Boolean]: whether or not the game was completed by the agent
+    def go(self, wait=1, freeze_weights = True):
         if wait is 0:
             def step():
                 pg.event.clear()
@@ -68,19 +101,26 @@ class TrainingGame(Game):
             def step():
                 pg.time.wait(abs(wait))
 
-        #colorama.init(autoreset=True)
-        #self.display_gui()
         self.draw()
         step()
         while not self.done():
             (self.world, self.events) = self.world.next()
-            #self.display_gui()
             self.draw()
             step()
             self.world.next_decisions()
-        #colorama.deinit()
+            #TODO evaluate if win
+            print('Searching events')
+            for event in self.events:
+                if(event.tpe == Event.CHARACTER_FOUND_EXIT):
+                    return True
+        return False
 
 if __name__ == "__main__":
+    # agent = q_agent.ExploitationAgent("me", "C", 0, 0)
+    # trainer = Trainer(agent)
+    # trainer.train()
+
+    #Testing for custom game
     g = TrainingGame.fromfile('map.txt')
 
     # TODO Add your character
@@ -91,5 +131,5 @@ if __name__ == "__main__":
     ))
 
     # Run!
-    g.go(wait = 1)
-    print("All imports are a go")
+    print(g.go(wait = 1))
+

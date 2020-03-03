@@ -1,4 +1,5 @@
-import sys
+import sys, os
+import random
 sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
 
@@ -7,10 +8,14 @@ from qlearning import q_agent
 import pygame as pg
 from events import Event
 
+from monsters.stupid_monster import StupidMonster
+from monsters.selfpreserving_monster import SelfPreservingMonster
+
 # Class responsible for reinforcement learning of a specified agent
 class Trainer():
-    def __init__(self, agent):
+    def __init__(self, agent, weightsfile="bomberman_weights.txt"):
         self.agent = agent
+        self.weightsfile = weightsfile
     
     # Vlad
     # Takes the current agent and plays each scenario 10 times
@@ -50,7 +55,7 @@ class Trainer():
         num_generations = 10
         for generation_number in range(num_generations):
             self.run_generation(num_episodes)
-            self.write_progress() 
+            self.write_progress(generation_number) 
     
     def run_generation(self, num_episodes):
         episodes = self.select_scenarios(num_episodes)
@@ -64,15 +69,57 @@ class Trainer():
             scenarios.append(self.select_scenario())
         return scenarios
 
-    # Connor
-    # TODO
+    # TODO verify if working :)
+    # Select one of the 10 variants from the 5 situations and 2 maps
     def select_scenario(self):
-        TrainingGame.fromfile('map.txt')
+        # maps
+        maps = ["trainingset/map1.txt", "trainingset/map2.txt"]
+        
+        # situations
+        # 1 - no monster
+        # 2 - stupid monster at (3,9)
+        # 3 - self preserving monster at (3,9) with detection range 1
+        # 4 - self preserving monster at (3,13) with detection range 2
+        # 5 - stupid monster at (3,5) and self preserving monster at (3,13) with detection range 2
+                
+        # TODO random selection
+        # Select Map
+        rand_map = maps[random.randint(0,1)]
+        
+        # Select Situation / Create it
+        rand_situation = random.randint(1,5)
+        
+        g = TrainingGame.fromfile(rand_map)
+        if (rand_situation == 2):
+            g.add_monster(StupidMonster("stupid", "S", 3, 9))
+        elif (rand_situation == 3):
+            g.add_monster(SelfPreservingMonster("selfpreserving", "S",3, 9, 1))
+        elif (rand_situation == 4):
+            g.add_monster(SelfPreservingMonster("selfpreserving", "S",3, 13, 2))
+        elif (rand_situation == 5):
+            g.add_monster(StupidMonster("stupid", "S", 3, 5))
+            g.add_monster(SelfPreservingMonster("selfpreserving", "S",3, 13, 2))
+        
+        return g
+            
     
-    # Connor
+    # TODO verify if working :)
     # Output generation #, weights and current winrate after playing each scenarios 10x to file
-    def write_progress(self):
-        pass
+    # PARAM [int] generation_number: which generation we are on
+    def write_progress(self, generation_number):
+        # check if we are creating or appending
+        file_exists = False
+        if os.path.exists(self.weightsfile):
+            file_exists = True # should be appending to weights file
+        
+        # write winrate to file
+        winrate = self.evaluate_winrate()
+        with open(self.weightsfile, 'a+') as f:
+            if (file_exists):
+                f.write("\n")
+            f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
+        f.close()
+
     
     # Will (also decide if we want to look at a post-state action or take both the state and action and calulate resulting state)
     # TODO

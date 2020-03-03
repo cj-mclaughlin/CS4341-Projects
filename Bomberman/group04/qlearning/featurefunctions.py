@@ -7,6 +7,8 @@ sys.path.append(file_dir)
 import actions
 
 
+# TODO consider non-moving action
+
 #Distance Functions
 
 # Function that quantifies how far the player is from the exit
@@ -143,6 +145,7 @@ def wall_in_bomb_range(state, action, character):
     if bomb is not None: # should bother putting down another
         return 0
     
+    # TODO also check for walls not immediately below character
     # Checking for horizontal wall below character (assumes horizontal walls and exit in +y direction)
     for w in range(state.width()):
         if (char_y + 1 >= state.height()): # no space to be blocked by a wall

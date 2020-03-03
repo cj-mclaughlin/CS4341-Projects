@@ -11,12 +11,11 @@ import featurefunctions as fn
 # Note: signiture for CharacterEntity constructor: def __init__(self, name, avatar, x, y):
 
 
-
 # TODO verify if working :)
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         #TODO don't hardcode
-        self.weights = [1,1,1,1]
+        self.weights = [1,1,1,1,1]
         self.feature_functions = fn.feature_functions
         super().__init__(name, avatar, x, y)
 

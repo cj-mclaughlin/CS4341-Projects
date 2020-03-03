@@ -6,7 +6,6 @@ sys.path.append(file_dir)
 
 import actions
 
-# TODO finish dist_to_monster and dist_to_search_path
 
 #Distance Functions
 
@@ -20,7 +19,7 @@ def dist_to_exit(state, action, character):
     exit_x, exit_y = state.exitcell
     
     # TODO figure if we want to normalize this or what, closer should be higher vals, incentive
-    return 1 / manhattan_dist(new_x, new_y, exit_x, exit_y)
+    return 1 / (manhattan_dist(new_x, new_y, exit_x, exit_y) + 1)
 
 # TODO Function that quantifies how far the player is from the nearest monster
 # PARAM[SensedWorld] state: the current state of the map
@@ -29,25 +28,81 @@ def dist_to_exit(state, action, character):
 def dist_to_monster(state, action, character):
     """Check if we are getting closer/further from a monster"""
     new_x, new_y = post_action_location(state, action, character)
+    monsters = find_monsters(state)
     
-    # TODO remove temporary fix
-    return 0
+    if monsters is None:
+        return 0
     
-    # TODO Find the closest monster coordinates
-    c_mon_x, c_mon_y, c_mon_dist = math.inf, math.inf, math.inf
-    #for mon in state.monsters.
+    else:
+        closest_monster_dist = math.inf
+        for m in monsters:
+            monster_dist = manhattan_dist(new_x, new_y, m[0], m[1])
+            if monster_dist < closest_monster_dist:
+                closest_monster_dist = monster_dist
 
-# TODO Function that checks if move puts us on path to solution (A*/bfs)
+    # TODO figure out how best to interpret closest distance to monster
+    if (closest_monster_dist > 2):
+        return 1
+    else:
+        return 0
+
+# Function which helps us figure out how tf to move around walls
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def dist_to_search_path(state, action, character):
-    """Check if we are getting closer/further from 'optimal' path"""
+def move_around_walls(state, action, character):
+    """Encourage movement to closest gap in next wall, if one exists"""
+    dist_to_gap = math.inf
     new_x, new_y = post_action_location(state, action, character)
-
-    # TODO implement
-    return 0
     
+    # find nearest row with a wall that we need to consider
+    found_row_with_wall = False
+    offset = 0
+    h = (new_y + offset + 1)
+    while (h < state.height()):
+        for w in range(state.width()):
+            if state.wall_at(w, h):
+                found_row_with_wall = True
+                break
+        if (found_row_with_wall):
+            break
+        offset += 1
+        h = (new_y + offset + 1)
+    
+    # find gap in corresponding row
+    closest_gap = None
+    closest_gap_dist = math.inf
+    if (found_row_with_wall):
+        for w in range(state.width()):
+            if not state.wall_at(w,h):
+                dist_to_gap = manhattan_dist(new_x, new_y, w, h)
+                if dist_to_gap < closest_gap_dist:
+                    closest_gap = (w, h)
+                    closest_gap_dist = dist_to_gap
+                    
+    #print("inclined to move towards next gap: ", closest_gap)
+    
+    # no gap, just go lol
+    if (closest_gap is None):
+        return 1
+    
+    # verify that we're going in the direction of the next gap (and not into walls!)
+    dx, dy = int(round(closest_gap[0] - character.x)), int(round(closest_gap[1] - character.y))
+    if (dx > 1):
+        dx = 1
+    if (dy > 1):
+        dy = 1
+    if (dx < -1):
+        dx = -1
+    if (dy < -1):
+        dy = -1
+    a_x, a_y =  actions.ActionDirections[action][0], actions.ActionDirections[action][1]
+    if ((dx != a_x or state.wall_at(character.x + a_x, character.y + a_y)) and (dy != a_y or (state.wall_at(character.x + a_x, character.y + a_y)))):
+        print("action dir ({},{}) not move us towards gap ({},{})".format(actions.ActionDirections[action][0], actions.ActionDirections[action][1], closest_gap[0], closest_gap[1]))
+        return 0  # not moving in direction of gap
+    else:
+        return 1
+
 
 # Check that the new position is a valid move
 # PARAM[SensedWorld] state: the state of the current board
@@ -83,9 +138,17 @@ def wall_in_bomb_range(state, action, character):
     char_x, char_y = post_action_location(state, action, character)
     blocked_by_wall = True
     
+    # First check that we haven't already put down a bomb
+    bomb = find_bomb(state)
+    if bomb is not None: # should bother putting down another
+        return 0
+    
     # Checking for horizontal wall below character (assumes horizontal walls and exit in +y direction)
     for w in range(state.width()):
-        if not state.wall_at(w, char_y + 1):
+        if (char_y + 1 >= state.height()): # no space to be blocked by a wall
+            blocked_by_wall = False 
+            break
+        if not state.wall_at(w, char_y + 1): # found a gap
             blocked_by_wall = False
             break
     
@@ -122,13 +185,13 @@ def bomb_danger_zone(state, action, character):
     # checks for active explosions
     if (state.explosion_at(char_x, char_y)):
         # really bad
-        return 1
+        return -1
     
     
     # TODO scale urgency based on how close we are to fuse
     if (in_explosion_radius):
         # more bad depending on how close bomb is to going off
-        return 1 / bomb.timer
+        return -1 / (bomb.timer + 1)
     
     return 0 # no active bombs or explosion on new tile
 
@@ -162,10 +225,23 @@ def find_bomb(state):
             if bomb is not None:
                 return bomb
 
+# Helper method to find monsters
+# PARAM[SensedWorld] state: the current state of the map
+def find_monsters(state):
+    """Returns list of coordinates with monsters"""
+    monsters = []
+    for w in range(state.width()):
+        for h in range(state.height()):
+            monster = state.monsters_at(w, h)
+            if monster is not None:
+                monsters.append((w,h))
+    return monsters
+
 # Export of the feature functions
 feature_functions = [
     dist_to_exit,
     dist_to_monster,
+    move_around_walls,
     bomb_danger_zone,
     wall_in_bomb_range
 ]

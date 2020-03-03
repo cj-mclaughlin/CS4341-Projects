@@ -7,6 +7,7 @@ from entity import CharacterEntity
 from actions import Action, ActionDirections
 import featurefunctions as fn
 from game import Game
+import pygame
 
 
 # Note: signiture for CharacterEntity constructor: def __init__(self, name, avatar, x, y):

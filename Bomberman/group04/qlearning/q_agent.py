@@ -6,6 +6,7 @@ sys.path.insert(1, '..')
 from entity import CharacterEntity
 from actions import Action, ActionDirections
 import featurefunctions as fn
+from game import Game
 
 
 # Note: signiture for CharacterEntity constructor: def __init__(self, name, avatar, x, y):
@@ -70,40 +71,3 @@ class ExplorationAgent(QAgent):
     # TODO
     def update_weights(self, reward):
         pass
-
-
-# TODO potentially move to other file
-class Trainer():
-    def __init__(self, ExplorationAgent):
-        self.agent = ExplorationAgent
-    
-    # Vlad
-    # TODO potentially leave in ExplorationAgent
-    def evaluate_winrate(self):
-        # freeze weights and play scenarios
-        pass
-    
-    # Vlad
-    # TODO potentially leave in ExplorationAgent    
-    def train(self):
-        # select scenarios
-        # update weights while doing scenarios
-        # write progress every output_frequency generations
-        pass 
-    
-    # Connor
-    # TODO
-    def select_scenario(self):
-        pass
-    
-    # Connor
-    # Output generation #, weights and current winrate after playing each scenarios 10x to file
-    def write_progress(self):
-        pass
-    
-    # Will (also decide if we want to look at a post-state action or take both the state and action and calulate resulting state)
-    # TODO
-    def reward(self, state, action):
-        pass
-    
-    

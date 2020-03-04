@@ -29,7 +29,6 @@ class QAgent(CharacterEntity):
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
 
-
 class ExploitationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)

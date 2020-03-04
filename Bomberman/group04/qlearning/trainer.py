@@ -106,7 +106,8 @@ class Trainer():
             rand_situation = seed[1]
         
         g = TrainingGame.fromfile(rand_map)
-        g.add_character(self.agent)
+        g.set_agent(self.agent)
+        g.set_reward_function(self.reward)
 
         if (rand_situation == 2):
             g.add_monster(StupidMonster("stupid", "S", 3, 9))
@@ -138,7 +139,10 @@ class Trainer():
             f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
         f.close()
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 19e317cfe334743d0fdd416d709da8ba7684e599
     # Get the reward value for a given state and action
     # PARAM[SensedWorld] state: the current state of the map
     # PARAM[list(Event)] events: the events that transpired with this action
@@ -151,6 +155,7 @@ class TrainingGame(Game):
     
     def set_agent(self, agent):
         self.agent = agent
+        super().add_character(self.agent)
 
     def set_reward_function(self, reward_fn):
         self.reward_fn = reward_fn

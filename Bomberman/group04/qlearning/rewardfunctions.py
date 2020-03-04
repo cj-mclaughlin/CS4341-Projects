@@ -5,12 +5,12 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 import actions
-from featurefunctions import valid_location, post_action_location
+from featurefunctions import post_action_location
 
 # Reward constant values
 R_LIVING = -1
 R_PER_WALL = 5
-R_PER_ENEMY = 100
+R_PER_MONSTER = 100
 R_DIE = -1000
 R_WIN = 1000
 
@@ -34,7 +34,7 @@ def blow_up_walls(state, action, character):
     """Earn reward for every destroyed wall"""
     walls_hit = 0
 
-    # Reward amount for each blown up wall
+    # Iterate over existing explosions to see if they hit walls
     for explosion in state.explosions.values():
         if state.wall_at(explosion.x, explosion.y):
             walls_hit += 1
@@ -48,7 +48,14 @@ def blow_up_walls(state, action, character):
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def kill_monsters(state, action, character):
     """Earn reward for every killed monster"""
-    return 0
+    monsters_hit = 0
+
+    # Iterate over existing explosions to see if they hit enemies
+    for explosion in state.explosions.values():
+        if state.monster_at(explosion.x, explosion.y):
+            monsters_hit += 1
+    
+    return R_PER_MONSTER * monsters_hit
 
 
 # Function that gives a very negative reward if the action kills the agent

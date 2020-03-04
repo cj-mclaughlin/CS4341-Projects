@@ -8,10 +8,15 @@ import actions
 from events import Event
 from featurefunctions import post_action_location
 
+import pdb
+
 # Reward constant values
 R_LIVING = -1
-R_PER_WALL = 5
-R_PER_MONSTER = 100
+R_BOMB_PLACED = -5
+R_WALL_IN_RANGE = 6
+R_WALL_HIT = 10
+R_MONSTER_IN_RANGE = 50
+R_MONSTER_HIT = 200
 R_DIED = -1000
 R_WON = 1000
 
@@ -24,9 +29,20 @@ def cost_of_living():
     return R_LIVING
 
 
+# Gives a negative reward if using the bomb to prevent overuse
+# PARAM[SensedWorld] state: the current state of the map
+def using_bomb(state):
+    """Return a constant, negative reward if bomb is out"""
+    if len(state.bombs) > 0:
+        return R_BOMB_PLACED
+    
+    # No bomb
+    return 0
+
+
 # Rewards the agent for successfully blowing up one or more walls
 # PARAM[list(Event)] events: the events that transpired in the last step
-def blew_up_walls(events):
+def hit_walls(events):
     """Earn reward for every destroyed wall"""
     walls_hit = 0
 
@@ -35,16 +51,12 @@ def blew_up_walls(events):
         if ev.tpe == Event.BOMB_HIT_WALL:
             walls_hit += 1
     
-    return R_PER_WALL * walls_hit
+    return R_WALL_HIT * walls_hit
 
-
-# TODO: Monsters are only rewarded if hit on the frame of the blast, not if they wander into
-# the explosion afterwards. Maybe reward can be earned if monster is just one step away from
-# death, as their moves cannot be predicted.
 
 # Rewards the agent for successfully killing one or more monsters
 # PARAM[list(Event)] events: the events that transpired in the last step
-def killed_monsters(events):
+def hit_monsters(events):
     """Earn reward for every killed monster"""
     monsters_hit = 0
 
@@ -53,7 +65,82 @@ def killed_monsters(events):
         if ev.tpe == Event.BOMB_HIT_MONSTER:
             monsters_hit += 1
     
-    return R_PER_MONSTER * monsters_hit
+    return R_MONSTER_HIT * monsters_hit
+
+
+# Rewards the agent for every wall in range of a bomb explosion
+# PARAM[SensedWorld] state: the current state of the map
+def can_hit_walls(state):
+    """Earn reward for every hittable wall"""
+    hittable_walls = 0
+    dist = state.expl_range
+
+    # Iterate over every bomb
+    for bomb in state.bombs.values():
+        # Check for walls
+        # +x direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x + i, bomb.y
+            if valid_loc(state, x, y) and state.wall_at(x, y):
+                hittable_walls += 1
+                break
+        # -x direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x - i, bomb.y
+            if valid_loc(state, x, y) and state.wall_at(x, y):
+                hittable_walls += 1
+                break
+        # +y direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x, bomb.y + i
+            if valid_loc(state, x, y) and state.wall_at(x, y):
+                hittable_walls += 1
+                break
+        # -y direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x, bomb.y - i
+            if valid_loc(state, x, y) and state.wall_at(x, y):
+                hittable_walls += 1
+                break
+    
+    return R_WALL_IN_RANGE * hittable_walls
+
+
+# Rewards the agent for every monster in range of a bomb explosion
+# PARAM[SensedWorld] state: the current state of the map
+def can_hit_monsters(state):
+    hittable_monsters = 0
+    dist = state.expl_range
+
+    # Iterate over every bomb
+    for bomb in state.bombs.values():
+        # Check for walls
+        # +x direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x + i, bomb.y
+            if valid_loc(state, x, y) and state.monsters_at(x, y):
+                hittable_monsters += 1
+                break
+        # -x direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x - i, bomb.y
+            if valid_loc(state, x, y) and state.monsters_at(x, y):
+                hittable_monsters += 1
+                break
+        # +y direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x, bomb.y + i
+            if valid_loc(state, x, y) and state.monsters_at(x, y):
+                hittable_monsters += 1
+                break
+        # -y direction
+        for i in range(1, dist + 1):
+            x, y = bomb.x, bomb.y - i
+            if valid_loc(state, x, y) and state.monsters_at(x, y):
+                hittable_monsters += 1
+                break
+    
+    return R_MONSTER_IN_RANGE * hittable_monsters
 
 
 # Gives a very negative reward if the agent is killed or runs out of time
@@ -89,6 +176,21 @@ def won(events):
     return 0
 
 
+# Check that the new position is a valid move
+# PARAM[SensedWorld] state: the state of the current board
+# PARAM[int] x: the x coordinate of the position to check
+# PARAM[int] y: the y coordinate of the position to check
+# RETURN[boolean] : whether the location is on the grid
+def valid_loc(state, x, y):
+    """Check if we are going out of bounds"""
+    # Check that there is no wall in the new position
+    if 0 <= x < state.width() and 0 <= y < state.height():
+        return True
+    
+    # Out of bounds
+    return False
+
+
 # Get the reward value for a given state and events
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(Event)] events: the events that transpired in the last step
@@ -98,8 +200,11 @@ def reward(state, events):
 
     # Sum reward returned from every reward function
     total_reward += cost_of_living()
-    total_reward += blew_up_walls(events)
-    total_reward += killed_monsters(events)
+    total_reward += using_bomb(state)
+    total_reward += hit_walls(events)
+    total_reward += hit_monsters(events)
+    total_reward += can_hit_walls(state)
+    total_reward += can_hit_monsters(state)
     total_reward += died(state, events)
     total_reward += won(events)
     

@@ -29,7 +29,7 @@ class Trainer():
         num_maps = 2
         num_situations = 5
         scenario_winrate = {
-            1 : 0,
+            1: 0,
             2: 0,
             3: 0,
             4: 0,
@@ -171,10 +171,11 @@ class TrainingGame(Game):
         self.draw()
         step()
         while not self.done():
-            cur_state = super().world
+            cur_state = self.world
             (self.world, self.events) = self.world.next()
             reward = self.reward_fn(self.world, self.events)
-            self.agent.update_weights(reward, cur_state, self.world)
+            if (not freeze_weights):
+                self.agent.update_weights(reward, cur_state, self.world)
             self.draw()
             step()
             self.world.next_decisions()

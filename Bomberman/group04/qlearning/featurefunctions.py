@@ -6,9 +6,6 @@ sys.path.append(file_dir)
 
 import actions
 
-
-# TODO consider non-moving action
-
 #Distance Functions
 
 # Function that quantifies how far the player is from the exit
@@ -20,10 +17,9 @@ def dist_to_exit(state, action, character):
     new_x, new_y = post_action_location(state, action, character)
     exit_x, exit_y = state.exitcell
     
-    # TODO figure if we want to normalize this or what, closer should be higher vals, incentive
     return 1 / (manhattan_dist(new_x, new_y, exit_x, exit_y) + 1)
 
-# TODO Function that quantifies how far the player is from the nearest monster
+# Function that returns distance to closest monster
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
@@ -42,7 +38,7 @@ def dist_to_monster(state, action, character):
             if monster_dist < closest_monster_dist:
                 closest_monster_dist = monster_dist
 
-    # TODO figure out how best to interpret closest distance to monster
+    # TODO specify vision 'radius'
     if (closest_monster_dist > 2):
         return 1
     else:
@@ -57,7 +53,7 @@ def move_around_walls(state, action, character):
     dist_to_gap = math.inf
     new_x, new_y = post_action_location(state, action, character)
     
-    bomb = find_bomb(state) # TODO consider sections of walls about to be blown up as potential gaps
+    bomb = find_bomb(state)
     
     # find nearest row with a wall that we need to consider
     found_row_with_wall = False
@@ -78,6 +74,7 @@ def move_around_walls(state, action, character):
     closest_gap_dist = math.inf
     if (found_row_with_wall):
         for w in range(state.width()):
+            # check for existing gap in walls
             if (not state.wall_at(w,h)):
                 dist_to_gap = manhattan_dist(new_x, new_y, w, h)
                 if dist_to_gap < closest_gap_dist:
@@ -86,7 +83,19 @@ def move_around_walls(state, action, character):
                     
     #print("inclined to move towards next gap: ", closest_gap)
     
-    # no gap, just go lol
+    # no existing gap
+    if (closest_gap is None):
+        # check for future gaps in walls (explosions/bombs)
+        if (found_row_with_wall):
+            for w in range(state.width()):
+                if(state.explosion_at(w,h) or (bomb is not None and bomb.x == w and abs(bomb.y - h) < state.expl_range)):
+                    if (bomb is not None):
+                        closest_gap = (w+1,bomb.y-1) # goal tile is right out of bomb range
+                    else:
+                        closest_gap = (w+1, h-1) # stand outside explosion
+                    break
+    
+    # still nothing lol
     if (closest_gap is None):
         return 1
     
@@ -101,9 +110,18 @@ def move_around_walls(state, action, character):
     if (dy < -1):
         dy = -1
     a_x, a_y =  actions.ActionDirections[action][0], actions.ActionDirections[action][1]
+    
+    if (closest_gap[0] == character.x and closest_gap[1] == character.y and action == actions.Action.STILL):
+        return 2
+    
+    # check bounds
+    if (character.x + a_x >= state.width() or character.y + a_y >= state.height()):
+        return 0
+    
+    # verify that action helps us go towards goal tile
     if ((dx != a_x or state.wall_at(character.x + a_x, character.y + a_y)) and (dy != a_y or (state.wall_at(character.x + a_x, character.y + a_y)))):
-        print("action dir ({},{}) not move us towards gap ({},{})".format(actions.ActionDirections[action][0], actions.ActionDirections[action][1], closest_gap[0], closest_gap[1]))
-        return 0  # not moving in direction of gap
+        print("action dir ({},{}) not move us towards gap ({},{})".format(a_x, a_y, closest_gap[0], closest_gap[1]))
+        return 0
     else:
         return 1
 
@@ -147,17 +165,30 @@ def wall_in_bomb_range(state, action, character):
     if bomb is not None: # should bother putting down another
         return 0
     
-    # TODO also check for walls not immediately below character
+    # find nearest row with a wall that we need to consider
+    found_row_with_wall = False
+    offset = 0
+    h = (char_y + offset + 1)
+    while (h < state.height()):
+        for w in range(state.width()):
+            if state.wall_at(w, h):
+                found_row_with_wall = True
+                break
+        if (found_row_with_wall):
+            break
+        if (h + 1 >= state.expl_range):
+            break
+        offset += 1
+        h = (char_y + offset + 1)
+    
     # Checking for horizontal wall below character (assumes horizontal walls and exit in +y direction)
     for w in range(state.width()):
-        if (char_y + 1 >= state.height()): # no space to be blocked by a wall
+        if (h >= state.height()): # no space to be blocked by a wall
             blocked_by_wall = False 
             break
-        if not state.wall_at(w, char_y + 1): # found a gap
+        if not state.wall_at(w, h) or state.explosion_at(w,h): # found a gap
             blocked_by_wall = False
             break
-        
-        # TODO potentially look down more than one layer
     
     if (blocked_by_wall and action == actions.Action.BOMB):
         return 1

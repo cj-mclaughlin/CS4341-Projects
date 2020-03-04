@@ -171,7 +171,10 @@ class TrainingGame(Game):
         self.draw()
         step()
         while not self.done():
+            cur_state = super().world
             (self.world, self.events) = self.world.next()
+            reward = self.reward_fn(self.world, self.events)
+            self.agent.update_weights(reward, cur_state, self.world)
             self.draw()
             step()
             self.world.next_decisions()

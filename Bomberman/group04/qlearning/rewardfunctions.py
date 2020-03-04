@@ -116,25 +116,14 @@ def win(state, action, character):
     return 0
 
 
-reward_functions = [
-    cost_of_living,
-    blow_up_walls,
-    kill_monsters,
-    die,
-    win
-]    
-
-
-# Calculate the total reward as a sum of each component with the given state/action pair
+# Get the reward value for a given state and action
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def reward(state, action, character):
+# PARAM[list(Event)] events: the events that transpired with this action
+def reward(state, events):
     """Earn reward based on sum of every reward component"""
     total_reward = 0
 
     # Sum reward returned from every reward function
-    for reward_function in reward_functions:
-        total_reward += reward_function(state, action)
+    # total_reward += 
     
     return total_reward

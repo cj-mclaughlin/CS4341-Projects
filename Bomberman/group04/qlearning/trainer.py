@@ -138,13 +138,12 @@ class Trainer():
             f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
         f.close()
 
-    
+
     # Get the reward value for a given state and action
     # PARAM[SensedWorld] state: the current state of the map
-    # PARAM[Action] action: the action to evaluate
-    # PARAM[MovableEntity] character: the bomberman character this is evaluating for
-    def reward(self, state, action, character):
-        return rewardfunctions.reward(state, action, self.agent)
+    # PARAM[list(Event)] events: the events that transpired with this action
+    def reward(self, state, events):
+        return rewardfunctions.reward(state, action, events)
     
 class TrainingGame(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):

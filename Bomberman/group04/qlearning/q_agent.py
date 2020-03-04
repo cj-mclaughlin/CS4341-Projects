@@ -14,7 +14,6 @@ import random
 # Note: signiture for CharacterEntity constructor: def __init__(self, name, avatar, x, y):
 
 
-# TODO verify if working :)
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         #TODO don't hardcode
@@ -24,9 +23,9 @@ class QAgent(CharacterEntity):
 
     def evaluate_move(self, state, action):
         move_util = 0
-        print("Evaluating action {}".format(action))
+        #print("Evaluating action {}".format(action))
         for i in range(len(self.weights)):
-            print("fn {} yielding {}*{}".format(i, self.weights[i], self.feature_functions[i](state, action, self)))
+            #print("fn {} yielding {}*{}".format(i, self.weights[i], self.feature_functions[i](state, action, self)))
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
     

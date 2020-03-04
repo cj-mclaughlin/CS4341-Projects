@@ -177,7 +177,7 @@ class TrainingGame(Game):
             reward = self.reward_fn(self.world, self.events)
             if (not freeze_weights):
                 self.agent.update_weights(reward, cur_state, self.world)
-            self.draw()
+            # self.draw() # TODO uncomment after training
             step()
             self.world.next_decisions()
             # evaluate if win

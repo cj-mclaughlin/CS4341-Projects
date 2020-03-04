@@ -120,7 +120,7 @@ def move_around_walls(state, action, character):
     
     # verify that action helps us go towards goal tile
     if ((dx != a_x or state.wall_at(character.x + a_x, character.y + a_y)) and (dy != a_y or (state.wall_at(character.x + a_x, character.y + a_y)))):
-        print("action dir ({},{}) not move us towards gap ({},{})".format(a_x, a_y, closest_gap[0], closest_gap[1]))
+        #print("action dir ({},{}) not move us towards gap ({},{})".format(a_x, a_y, closest_gap[0], closest_gap[1]))
         return 0
     else:
         return 1

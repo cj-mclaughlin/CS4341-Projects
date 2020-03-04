@@ -42,6 +42,10 @@ def blow_up_walls(state, action, character):
     return R_PER_WALL * walls_hit
 
 
+# TODO: Monsters are only rewarded if hit on the frame of the blast, not if they wander into
+# the explosion afterwards. Maybe reward can be earned if monster is just one step away from
+# death, as their moves cannot be predicted.
+
 # Function that rewards the agent for successfully killing one or more monsters
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate

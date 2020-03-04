@@ -72,7 +72,7 @@ def die(state, action, character):
     if state.time == 1:
         # Reward for out of time death
         return R_DIE:
-        
+
     # Reward for survival
     return 0
 
@@ -83,6 +83,12 @@ def die(state, action, character):
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def win(state, action, character):
     """Earn positive reward if action causes the agent to win the game"""
+    char_x, char_y = post_action_location(state, action, character)
+    if state.exit_at(char_x, char_y):
+        # Reward for winning
+        return R_WIN
+    
+    # Reward for not winning
     return 0
 
 

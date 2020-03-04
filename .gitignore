@@ -1,6 +1,9 @@
 # Debug
 ConnectN/lost-games.txt
 
+# Bomberman Weights
+Bomberman/group04/qlearning/bomberman_weights.txt
+
 __pycache__
 *.pyc
 

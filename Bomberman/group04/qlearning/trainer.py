@@ -53,7 +53,7 @@ class Trainer():
         scenarios = []
         for map_idx in range(num_maps):
             for situation_idx in range(num_situations):
-                print(f'map_idx: {map_idx} situation_idx: {situation_idx}')
+                # print(f'map_idx: {map_idx} situation_idx: {situation_idx}')
                 scenarios.append(self.select_scenario(seed = (map_idx, situation_idx)))
 
         # Loop through playing scenarios and get win rate for each scenario
@@ -76,19 +76,24 @@ class Trainer():
     def train(self):
         # select scenarios
         num_episodes = 25
-        num_generations = 10
+        num_generations = 25
         for generation_number in range(num_generations):
             self.run_generation(num_episodes)
             self.write_progress(generation_number) 
             
             # check for convergence
             if (self.agent.alpha < 0.1):
+                print("Stopping early due to alpha convergence")
                 break
     
     def run_generation(self, num_episodes):
         episodes = self.select_scenarios(num_episodes)
         for episode in episodes:
             episode.go(freeze_weights = False)
+            
+        # update alpha value -- TODO consider updating this like epsilon instead
+        self.agent.increment_generation()
+        self.agent.update_alpha()
 
     def select_scenarios(self, num_scenerios):
         scenarios = []
@@ -199,11 +204,3 @@ class TrainingGame(Game):
                 if(event.tpe == Event.CHARACTER_FOUND_EXIT):
                     return True
         return False
-
-if __name__ == "__main__":
-    agent = q_agent.ExploitationAgent("me", "C", 0, 0)
-    trainer = Trainer(agent)
-    print(f'Trainor created')
-    print(f' winrate = {trainer.evaluate_winrate()}')
-    #trainer.train()
-

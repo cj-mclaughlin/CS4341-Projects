@@ -6,6 +6,8 @@ sys.path.append(file_dir)
 
 import actions
 
+# TODO NORMALIZE AND REMOVE NEGATIVE WEIGHTS
+
 #Distance Functions
 
 # Function that quantifies how far the player is from the exit

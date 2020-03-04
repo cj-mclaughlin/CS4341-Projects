@@ -75,13 +75,14 @@ class ExplorationAgent(QAgent):
         self.weights_filename = "bomberman_weights.txt"
         self.epsilon = 1
         self.num_actions_completed = 0
-        self.k = .1
+        self.alpha_k = 0.01
+        self.epsilon_k = 0.005
         self.last_action = Action.STILL
        
     # Update alpha with exponential decay
     # PARAM[float] k: scale factor for exponential decay
-    def update_alpha(self, k=0.1):
-        self.alpha = self.inital_alpha * math.exp(-k*self.generation)
+    def update_alpha(self):
+        self.alpha = self.inital_alpha * math.exp(-self.alpha_k*self.generation)
     
     # Update weights after taking a step in world
     # PARAM[float] reward: reward recieved for last action in world
@@ -99,11 +100,6 @@ class ExplorationAgent(QAgent):
         # wi = wi + a*delta*fi(s,a)
         for w_idx in range(len(self.weights)):
             self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)
-        # update alpha
-        self.update_alpha() # TODO move
-        
-        # update generation
-        self.generation += 1 # TODO move
 
     def do(self, world):
         x = random.random()
@@ -120,9 +116,13 @@ class ExplorationAgent(QAgent):
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])
         self.num_actions_completed += 1
+        self.update_epsilon()
 
+    def increment_generation(self):
+        self.generation += 1
+    
     def update_epsilon(self):
-        self.epsilon = math.exp(-self.k * self.num_actions_completed)
+        self.epsilon = math.exp(-self.epsilon_k * self.num_actions_completed)
 
     def generate_random_action(self):
         action_num = random.randint(1,6)

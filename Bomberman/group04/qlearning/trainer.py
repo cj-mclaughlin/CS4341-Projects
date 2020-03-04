@@ -12,8 +12,7 @@ from events import Event
 
 from monsters.stupid_monster import StupidMonster
 from monsters.selfpreserving_monster import SelfPreservingMonster
-#TODO delete after debugging
-import pdb
+
 
 # Class responsible for reinforcement learning of a specified agent
 class Trainer():
@@ -67,6 +66,10 @@ class Trainer():
         for generation_number in range(num_generations):
             self.run_generation(num_episodes)
             self.write_progress(generation_number) 
+            
+            # check for convergence
+            if (self.agent.alpha < 0.1):
+                break
     
     def run_generation(self, num_episodes):
         episodes = self.select_scenarios(num_episodes)
@@ -79,7 +82,6 @@ class Trainer():
             scenarios.append(self.select_scenario())
         return scenarios
 
-    # TODO verify if working :)
     # Select one of the 10 variants from the 5 situations and 2 maps
     # PARAM [Tuple] seed: the scenario that we want this to return in the format (MapIdx, Situation)
     def select_scenario(self, seed = None):
@@ -93,7 +95,6 @@ class Trainer():
         # 4 - self preserving monster at (3,13) with detection range 2
         # 5 - stupid monster at (3,5) and self preserving monster at (3,13) with detection range 2
                 
-        # TODO random selection
         # Select Map
         if(seed == None):
             rand_map = maps[random.randint(0,1)]

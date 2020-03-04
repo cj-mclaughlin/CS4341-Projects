@@ -6,7 +6,6 @@ sys.path.append(file_dir)
 
 import actions
 
-# TODO NORMALIZE AND REMOVE NEGATIVE WEIGHTS
 
 #Distance Functions
 
@@ -101,7 +100,7 @@ def move_around_walls(state, action, character):
     
     # still nothing lol
     if (closest_gap is None):
-        return 1
+        return 0
     
     # verify that we're going in the direction of the next gap (and not into walls!)
     dx, dy = int(round(closest_gap[0] - character.x)), int(round(closest_gap[1] - character.y))
@@ -116,7 +115,7 @@ def move_around_walls(state, action, character):
     a_x, a_y =  actions.ActionDirections[action][0], actions.ActionDirections[action][1]
     
     if (closest_gap[0] == character.x and closest_gap[1] == character.y and action == actions.Action.STILL):
-        return 2
+        return 0
     
     # check bounds
     if (character.x + a_x >= state.width() or character.y + a_y >= state.height()):
@@ -125,9 +124,9 @@ def move_around_walls(state, action, character):
     # verify that action helps us go towards goal tile
     if ((dx != a_x or state.wall_at(character.x + a_x, character.y + a_y)) and (dy != a_y or (state.wall_at(character.x + a_x, character.y + a_y)))):
         #print("action dir ({},{}) not move us towards gap ({},{})".format(a_x, a_y, closest_gap[0], closest_gap[1]))
-        return 0
+        return 1 # moving away from gap is bad
     else:
-        return 1
+        return 0
 
 
 # Check that the new position is a valid move

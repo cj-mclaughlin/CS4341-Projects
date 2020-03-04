@@ -64,6 +64,16 @@ def kill_monsters(state, action, character):
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def die(state, action, character):
     """Earn negative reward if action kills the agent in this state"""
+    char_x, char_y = post_action_location(state, action, character)
+    if state.monster_at(char_x, char_y) or state.explosion_at(char_x, char_y):
+        # Reward for death
+        return R_DIE
+
+    if state.time == 1:
+        # Reward for out of time death
+        return R_DIE:
+        
+    # Reward for survival
     return 0
 
 

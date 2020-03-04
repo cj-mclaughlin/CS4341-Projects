@@ -157,7 +157,7 @@ class Trainer():
             if (file_exists):
                 f.write("\n")
             else:
-                f.write("Generation # | Weights [Dist_Exit, Dist_Monster, Move_to_Gap, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate ")
+                f.write("Generation # | Weights [Dist_Exit, Dist_Monster, Move_to_Gap, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate\n")
             f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
         f.close()
 

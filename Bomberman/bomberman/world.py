@@ -132,11 +132,14 @@ class World:
             print(e)
         
         # Reward testing
-        # print('Live', rewardfunctions.cost_of_living())
-        # print('Wall', rewardfunctions.blew_up_walls(self.events))
-        # print('Kill', rewardfunctions.killed_monsters(self.events))
-        # print('Died', rewardfunctions.died(self, self.events))
-        # print('Won!', rewardfunctions.won(self.events))
+        # print('Live\t', rewardfunctions.cost_of_living())
+        # print('Bomb\t', rewardfunctions.using_bomb(self))
+        # print('Wall\t', rewardfunctions.hit_walls(self.events))
+        # print('CanWall\t', rewardfunctions.can_hit_walls(self))
+        # print('Kill\t', rewardfunctions.hit_monsters(self.events))
+        # print('CanKill\t', rewardfunctions.can_hit_monsters(self))
+        # print('Died\t', rewardfunctions.died(self, self.events))
+        # print('Won!\t', rewardfunctions.won(self.events))
 
     ###################
     # Private methods #

@@ -57,6 +57,8 @@ def move_around_walls(state, action, character):
     dist_to_gap = math.inf
     new_x, new_y = post_action_location(state, action, character)
     
+    bomb = find_bomb(state) # TODO consider sections of walls about to be blown up as potential gaps
+    
     # find nearest row with a wall that we need to consider
     found_row_with_wall = False
     offset = 0
@@ -76,7 +78,7 @@ def move_around_walls(state, action, character):
     closest_gap_dist = math.inf
     if (found_row_with_wall):
         for w in range(state.width()):
-            if not state.wall_at(w,h):
+            if (not state.wall_at(w,h)):
                 dist_to_gap = manhattan_dist(new_x, new_y, w, h)
                 if dist_to_gap < closest_gap_dist:
                     closest_gap = (w, h)
@@ -154,6 +156,8 @@ def wall_in_bomb_range(state, action, character):
         if not state.wall_at(w, char_y + 1): # found a gap
             blocked_by_wall = False
             break
+        
+        # TODO potentially look down more than one layer
     
     if (blocked_by_wall and action == actions.Action.BOMB):
         return 1

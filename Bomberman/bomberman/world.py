@@ -3,6 +3,9 @@ from events import Event
 import sys
 from colorama import Fore, Back, Style
 
+sys.path.insert(0, '../../group04/qlearning')
+import rewardfunctions
+
 class World:
 
     def __init__(self):
@@ -127,6 +130,16 @@ class World:
         print("EVENTS")
         for e in self.events:
             print(e)
+        
+        # Reward testing
+        # print('Live\t', rewardfunctions.cost_of_living())
+        # print('Bomb\t', rewardfunctions.using_bomb(self))
+        # print('Wall\t', rewardfunctions.hit_walls(self.events))
+        # print('CanWall\t', rewardfunctions.can_hit_walls(self))
+        # print('Kill\t', rewardfunctions.hit_monsters(self.events))
+        # print('CanKill\t', rewardfunctions.can_hit_monsters(self))
+        # print('Died\t', rewardfunctions.died(self, self.events))
+        # print('Won!\t', rewardfunctions.won(self.events))
 
     ###################
     # Private methods #

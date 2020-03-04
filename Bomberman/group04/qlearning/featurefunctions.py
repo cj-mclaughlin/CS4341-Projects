@@ -227,13 +227,11 @@ def bomb_danger_zone(state, action, character):
     # checks for active explosions
     if (state.explosion_at(char_x, char_y)):
         # really bad
-        return -1
+        return 1
     
-    
-    # TODO scale urgency based on how close we are to fuse
     if (in_explosion_radius):
         # more bad depending on how close bomb is to going off
-        return -1 / (bomb.timer + 1)
+        return 1 / (bomb.timer + 1)
     
     return 0 # no active bombs or explosion on new tile
 

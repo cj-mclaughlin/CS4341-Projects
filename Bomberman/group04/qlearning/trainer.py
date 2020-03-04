@@ -180,28 +180,9 @@ class TrainingGame(Game):
         return False
 
 if __name__ == "__main__":
-<<<<<<< HEAD
-    # agent = q_agent.ExploitationAgent("me", "C", 0, 0)
-    # trainer = Trainer(agent)
-    # trainer.train()
-
-    #Testing for custom game
-    g = TrainingGame.fromfile('map.txt')
-
-    # TODO Add your character
-    agent = q_agent.ExploitationAgent
-    g.add_character(agent("me", # name
-                                "C",  # avatar
-                                0, 0  # position
-    ))
-
-    # Run!
-    print(g.go(wait = 0))
-=======
     agent = q_agent.ExploitationAgent("me", "C", 0, 0)
     trainer = Trainer(agent)
     print(f'Trainor created')
     print(f' winrate = {trainer.evaluate_winrate()}')
     #trainer.train()
->>>>>>> d008ebfd5fbd13a934e1164c215a4787541ce6d0
 

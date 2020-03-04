@@ -5,6 +5,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 import actions
+import events
 from featurefunctions import post_action_location
 
 # Reward constant values
@@ -18,25 +19,21 @@ R_WIN = 1000
 # Reward component functions
 
 # Function that gives a negative reward no matter what action is taken (cost of living)
-# PARAM[SensedWorld] state: the current state of the map
-# PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def cost_of_living(state, action, character):
+def cost_of_living():
     """Return a constant, negative reward that represents the cost of living"""
     return R_LIVING
 
 
 # Function that rewards the agent for successfully blowing up one or more walls
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def blow_up_walls(state, action, character):
+# PARAM[list(Event)] events: the events that transpired in the last step
+def blow_up_walls(state, events):
     """Earn reward for every destroyed wall"""
     walls_hit = 0
 
-    # Iterate over existing explosions to see if they hit walls
-    for explosion in state.explosions.values():
-        if state.wall_at(explosion.x, explosion.y):
+    # Iterate over events to see if the user hit walls
+    for ev in events:
+        if ev.tpe == event.BOMB_HIT_WALL:
             walls_hit += 1
     
     return R_PER_WALL * walls_hit
@@ -116,14 +113,14 @@ def win(state, action, character):
     return 0
 
 
-# Get the reward value for a given state and action
+# Get the reward value for a given state and new events
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[list(Event)] events: the events that transpired with this action
+# PARAM[list(Event)] events: the events that transpired in the last step
 def reward(state, events):
     """Earn reward based on sum of every reward component"""
     total_reward = 0
 
     # Sum reward returned from every reward function
-    # total_reward += 
+    total_reward += 
     
     return total_reward

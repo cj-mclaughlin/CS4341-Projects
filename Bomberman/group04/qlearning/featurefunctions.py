@@ -43,7 +43,7 @@ def dist_to_monster(state, action, character):
 
     # TODO specify vision 'radius'
     if (closest_monster_dist < search_radius):
-        return (1-closest_monster_dist)/search_radius
+        return 1-(closest_monster_dist/search_radius)
     else:
         return 0
 

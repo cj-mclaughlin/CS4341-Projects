@@ -24,7 +24,7 @@ class Trainer():
     # Takes the current agent and plays each scenario 10 times
     # Then returns the winrate for each scenario
     def evaluate_winrate(self):
-        num_runs_per_scenario = 1
+        num_runs_per_scenario = 10
         num_maps = 2
         num_situations = 5
         
@@ -156,6 +156,8 @@ class Trainer():
         with open(self.weightsfile, 'a+') as f:
             if (file_exists):
                 f.write("\n")
+            else:
+                f.write("Generation # | Weights [Dist_Exit, Dist_Monster, Move_to_Gap, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate ")
             f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
         f.close()
 

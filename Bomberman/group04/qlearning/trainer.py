@@ -27,6 +27,16 @@ class Trainer():
         num_runs_per_scenario = 1
         num_maps = 2
         num_situations = 5
+        
+        exploration = self.agent # old agent to remember
+        old_weights = exploration.weights
+        
+        # create exploitation agent with same weights
+        test_agent = q_agent.ExploitationAgent("me", "C", 0, 0)
+        test_agent.set_weights(old_weights)
+        
+        self.agent = test_agent
+        
         scenario_winrate = {
             1: 0,
             2: 0,
@@ -55,6 +65,10 @@ class Trainer():
                     num_wins += 1
             
             scenario_winrate[i] = num_wins/num_runs_per_scenario
+            
+        # set our agent back to the exploration agent
+        self.agent = exploration    
+        
         return scenario_winrate
    
     # Vlad
@@ -169,7 +183,7 @@ class TrainingGame(Game):
             def step():
                 pg.time.wait(abs(wait))
 
-        self.draw()
+        # self.draw()
         step()
         while not self.done():
             cur_state = self.world

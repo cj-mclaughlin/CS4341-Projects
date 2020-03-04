@@ -29,6 +29,12 @@ class QAgent(CharacterEntity):
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
     
+    def valid_action(self, world, action):
+        direction = ActionDirections[action]
+        if (self.x + direction[0] < 0 or self.y + direction[1] < 0):
+            return False
+        return True
+    
     # Determine the best action the agent can take
     # PARAM [World] state: the current state that the agent is in
     # RETURN [Action]: the best action that the agent can take 
@@ -47,6 +53,9 @@ class ExploitationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)
         
+    def set_weights(self, weights):
+        self.weights = weights
+    
     def do(self, world):
         """Find and perform best available move"""
         best_action = self.determine_best_action(world)
@@ -56,11 +65,6 @@ class ExploitationAgent(QAgent):
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])
          
-    def valid_action(self, world, action):
-        direction = ActionDirections[action]
-        if (self.x + direction[0] < 0 or self.y + direction[1] < 0):
-            return False
-        return True
 
 class ExplorationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
@@ -72,6 +76,7 @@ class ExplorationAgent(QAgent):
         self.epsilon = 1
         self.num_actions_completed = 0
         self.k = .1
+        self.last_action = Action.STILL
        
     # Update alpha with exponential decay
     # PARAM[float] k: scale factor for exponential decay
@@ -86,19 +91,19 @@ class ExplorationAgent(QAgent):
     # PARAM[Action] next_action: the best action after entering next state (argmax)
     # PARAM[float] discount: discounting rate
     def update_weights(self, reward, current_state, next_state, discount=0.9):
-        current_action = Action.STILL #TODO remove after change ExplorationAgent looks keeps track of it's moves
+        current_action = self.last_action
         current_utility = self.evaluate_move(current_state, current_action)
         next_action = self.determine_best_action(next_state)
         # delta = r + v(max(a')(Q(s',a'))) - Q(s,a)
         delta = (reward + (discount*self.evaluate_move(next_state, next_action))) - current_utility
         # wi = wi + a*delta*fi(s,a)
         for w_idx in range(len(self.weights)):
-            self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action)
+            self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)
         # update alpha
-        self.update_alpha()
+        self.update_alpha() # TODO move
         
         # update generation
-        self.generation += 1
+        self.generation += 1 # TODO move
 
     def do(self, world):
         x = random.random()
@@ -106,6 +111,8 @@ class ExplorationAgent(QAgent):
             best_action = self.generate_random_action()
         else:
             best_action = self.determine_best_action(world)
+        
+        self.last_action = best_action
         
         if best_action == Action.BOMB:
             self.place_bomb()

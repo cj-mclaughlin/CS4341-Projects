@@ -18,13 +18,13 @@ R_WON = 1000
 
 # Reward component functions
 
-# Function that gives a negative reward no matter what action is taken (cost of living)
+# Gives a negative reward no matter what has happened (cost of living)
 def cost_of_living():
     """Return a constant, negative reward that represents the cost of living"""
     return R_LIVING
 
 
-# Function that rewards the agent for successfully blowing up one or more walls
+# Rewards the agent for successfully blowing up one or more walls
 # PARAM[list(Event)] events: the events that transpired in the last step
 def blew_up_walls(events):
     """Earn reward for every destroyed wall"""
@@ -42,7 +42,7 @@ def blew_up_walls(events):
 # the explosion afterwards. Maybe reward can be earned if monster is just one step away from
 # death, as their moves cannot be predicted.
 
-# Function that rewards the agent for successfully killing one or more monsters
+# Rewards the agent for successfully killing one or more monsters
 # PARAM[list(Event)] events: the events that transpired in the last step
 def killed_monsters(events):
     """Earn reward for every killed monster"""
@@ -56,11 +56,11 @@ def killed_monsters(events):
     return R_PER_MONSTER * monsters_hit
 
 
-# Function that gives a very negative reward if the action kills the agent
+# Gives a very negative reward if the agent is killed or runs out of time
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(Event)] events: the events that transpired in the last step
 def died(state, events):
-    """Earn negative reward if agent is killed"""
+    """Earn negative reward if agent is killed or out of time"""
     # Iterate over events to check for death
     for ev in events:
         if ev.tpe == Event.CHARACTER_KILLED_BY_MONSTER or ev.tpe == Event.BOMB_HIT_CHARACTER:
@@ -75,7 +75,7 @@ def died(state, events):
     return 0
 
 
-# Function that gives a very positive reward if the action results in a win for the agent
+# Gives a very positive reward if the agent has won
 # PARAM[list(Event)] events: the events that transpired in the last step
 def won(events):
     """Earn positive reward if agent has won the game"""

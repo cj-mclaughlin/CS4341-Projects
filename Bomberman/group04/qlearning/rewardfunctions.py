@@ -6,7 +6,7 @@ sys.path.append(file_dir)
 
 import actions
 from events import Event
-from featurefunctions import post_action_location
+from featurefunctions import manhattan_dist
 
 import pdb
 
@@ -17,6 +17,7 @@ R_WALL_IN_RANGE = 6
 R_WALL_HIT = 10
 R_MONSTER_IN_RANGE = 50
 R_MONSTER_HIT = 200
+R_NEAR_EXIT = 8  # Reward when on top of exit
 R_DIED = -1000
 R_WON = 1000
 
@@ -143,6 +144,22 @@ def can_hit_monsters(state):
     return R_MONSTER_IN_RANGE * hittable_monsters
 
 
+# Gives a reward based on how far the agent is from the exit
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[list(Event)] events: the events that transpired in the last step
+def dist_to_exit(state):
+    """Earn reward based on closeness to exit"""
+    for character_list in state.characters.values():
+        character = character_list[0]
+        max_manhattan_dist = 27
+        closeness = 1 - (manhattan_dist(character.x, character.y, *state.exitcell) / max_manhattan_dist)
+        return R_NEAR_EXIT * closeness
+    
+    # No character found
+    return 0
+
+
+
 # Gives a very negative reward if the agent is killed or runs out of time
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(Event)] events: the events that transpired in the last step
@@ -205,6 +222,7 @@ def reward(state, events):
     total_reward += hit_monsters(events)
     total_reward += can_hit_walls(state)
     total_reward += can_hit_monsters(state)
+    total_reward += dist_to_exit(state)
     total_reward += died(state, events)
     total_reward += won(events)
     

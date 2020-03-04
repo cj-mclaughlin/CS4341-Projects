@@ -138,6 +138,7 @@ class World:
         # print('CanWall\t', rewardfunctions.can_hit_walls(self))
         # print('Kill\t', rewardfunctions.hit_monsters(self.events))
         # print('CanKill\t', rewardfunctions.can_hit_monsters(self))
+        # print('Exit\t', rewardfunctions.dist_to_exit(self))
         # print('Died\t', rewardfunctions.died(self, self.events))
         # print('Won!\t', rewardfunctions.won(self.events))
 

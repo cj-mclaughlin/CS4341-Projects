@@ -38,9 +38,9 @@ class QAgent(CharacterEntity):
         best_action = None
         best_action_val = -math.inf
         for a in Action:
-             if super().evaluate_move(state, a) > best_action_val and self.valid_action(state, a):
+             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
                  best_action = a
-                 best_action_val = super().evaluate_move(state, a)
+                 best_action_val = self.evaluate_move(state, a)
         return best_action
 
 class ExploitationAgent(QAgent):

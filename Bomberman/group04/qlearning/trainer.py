@@ -104,7 +104,8 @@ class Trainer():
             rand_situation = seed[1]
         
         g = TrainingGame.fromfile(rand_map)
-        g.add_character(self.agent)
+        g.set_agent(self.agent)
+        g.set_reward_function(self.reward)
 
         if (rand_situation == 2):
             g.add_monster(StupidMonster("stupid", "S", 3, 9))
@@ -139,7 +140,7 @@ class Trainer():
     
     # Will (also decide if we want to look at a post-state action or take both the state and action and calulate resulting state)
     # TODO
-    def reward(self, state, action):
+    def reward(self, state):
         pass
     
 class TrainingGame(Game):
@@ -148,6 +149,7 @@ class TrainingGame(Game):
     
     def set_agent(self, agent):
         self.agent = agent
+        super().add_character(self.agent)
 
     def set_reward_function(self, reward_fn):
         self.reward_fn = reward_fn

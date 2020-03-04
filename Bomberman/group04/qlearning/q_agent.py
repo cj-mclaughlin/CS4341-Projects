@@ -8,6 +8,7 @@ from actions import Action, ActionDirections
 import featurefunctions as fn
 from game import Game
 import pygame
+import random
 
 
 # Note: signiture for CharacterEntity constructor: def __init__(self, name, avatar, x, y):
@@ -69,6 +70,9 @@ class ExplorationAgent(QAgent):
         self.alpha = self.inital_alpha
         self.generation = 1
         self.weights_filename = "bomberman_weights.txt"
+        self.epsilon = 1
+        self.num_actions_completed = 0
+        self.k = .1
        
     # Update alpha with exponential decay
     # PARAM[float] k: scale factor for exponential decay
@@ -96,3 +100,25 @@ class ExplorationAgent(QAgent):
         
         # update generation
         self.generation += 1
+
+    def do(self, world):
+        x = random.random()
+        if(x < self.epsilon):
+            best_action = self.generate_random_action()
+        else:
+            best_action = self.determine_best_action(world)
+        
+        if best_action == Action.BOMB:
+            self.place_bomb()
+        else:
+            direction = ActionDirections[best_action]
+            self.move(direction[0], direction[1])
+        self.num_actions_completed += 1
+
+    def update_epsilon(self):
+        self.epsilon = math.exp(-self.k * self.num_actions_completed)
+
+    def generate_random_action(self):
+        action_num = random.randint(1,6)
+        action = Action(action_num)
+        return action

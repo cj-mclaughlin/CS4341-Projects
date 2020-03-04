@@ -50,10 +50,19 @@ def kill_monsters(state, action, character):
     """Earn reward for every killed monster"""
     monsters_hit = 0
 
-    # Iterate over existing explosions to see if they hit enemies
-    for explosion in state.explosions.values():
-        if state.monster_at(explosion.x, explosion.y):
-            monsters_hit += 1
+    # Iterate over bombs and monsters to see if they will hit enemies
+    for bomb in state.bombs.values():
+        # Reward for monsters moving into bomb blast zone
+        # Bombs blast before agents move, so being in range one frame before blasting causes death
+        if bomb.timer <= 1:
+            for monster_list in state.monsters.values():
+                for monster in monster_list:
+                    # Check if monster is in the x component of explosion
+                    if (abs(monster.x - bomb.x) <= state.expl_range and monster.y == bomb.y):
+                        monsters_hit += 1
+                    # y component
+                    elif (abs(monster.y - bomb.y) <= state.expl_range and monster.x == bomb.x):
+                        monsters_hit += 1
     
     return R_PER_MONSTER * monsters_hit
 
@@ -65,13 +74,24 @@ def kill_monsters(state, action, character):
 def die(state, action, character):
     """Earn negative reward if action kills the agent in this state"""
     char_x, char_y = post_action_location(state, action, character)
-    if state.monster_at(char_x, char_y) or state.explosion_at(char_x, char_y):
-        # Reward for death
+    if state.monsters_at(char_x, char_y) or state.explosion_at(char_x, char_y):
+        # Reward for moving into death
         return R_DIE
 
     if state.time == 1:
         # Reward for out of time death
-        return R_DIE:
+        return R_DIE
+    
+    for bomb in state.bombs.values():
+        # Reward for moving into bomb blast zone
+        # Bombs blast before agents move, so being in range one frame before blasting causes death
+        if bomb.timer <= 1:
+            # Check if we are in the x component of explosion
+            if (abs(char_x - bomb.x) <= state.expl_range and char_y == bomb.y):
+                return R_DIE
+            # y component
+            elif (abs(char_y - bomb.y) <= state.expl_range and char_x == bomb.x):
+                return R_DIE
 
     # Reward for survival
     return 0

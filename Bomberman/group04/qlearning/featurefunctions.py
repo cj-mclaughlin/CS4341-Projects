@@ -220,17 +220,17 @@ def post_action_location(state, action, character):
     return new_x, new_y
 
 
-# TODO update find_bomb to be constant lookup instead of search if possible
-
 # Helper method to find bomb (hopefully we can just index in the future)
 # PARAM[SensedWorld] state: the current state of the map
 def find_bomb(state):
     """Returns active bomb if one exists, None otherwise"""
-    for w in range(state.width()):
-        for h in range(state.height()):
-            bomb = state.bomb_at(w, h)
-            if bomb is not None:
-                return bomb
+    for bomb in state.bombs.values():
+        return bomb
+    # for w in range(state.width()):
+    #     for h in range(state.height()):
+    #         bomb = state.bomb_at(w, h)
+    #         if bomb is not None:
+    #             return bomb
 
 # Helper method to find monsters
 # PARAM[SensedWorld] state: the current state of the map

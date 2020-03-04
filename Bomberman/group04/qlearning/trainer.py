@@ -139,10 +139,12 @@ class Trainer():
         f.close()
 
     
-    # Will (also decide if we want to look at a post-state action or take both the state and action and calulate resulting state)
-    # TODO
-    def reward(self, state, action):
-        return rewardfunctions.reward(state, action)
+    # Get the reward value for a given state and action
+    # PARAM[SensedWorld] state: the current state of the map
+    # PARAM[Action] action: the action to evaluate
+    # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+    def reward(self, state, action, character):
+        return rewardfunctions.reward(state, action, self.agent)
     
 class TrainingGame(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):

@@ -10,6 +10,8 @@ from events import Event
 
 from monsters.stupid_monster import StupidMonster
 from monsters.selfpreserving_monster import SelfPreservingMonster
+#TODO delete after debugging
+import pdb
 
 # Class responsible for reinforcement learning of a specified agent
 class Trainer():
@@ -21,29 +23,36 @@ class Trainer():
     # Takes the current agent and plays each scenario 10 times
     # Then returns the winrate for each scenario
     def evaluate_winrate(self):
-        num_runs_per_scenario = 10
+        num_runs_per_scenario = 1
+        num_maps = 2
+        num_situations = 5
         scenario_winrate = {
             1 : 0,
             2: 0,
             3: 0,
-            4 : 0,
+            4: 0,
             5: 0,
             6: 0,
-            7 : 0,
+            7: 0,
             8: 0,
             9: 0,
             10: 0
         }
         # Create a queue of scenarios to play
-        #TODO after have all scenarios accessible
         scenarios = []
+        for map_idx in range(num_maps):
+            for situation_idx in range(num_situations):
+                print(f'map_idx: {map_idx} situation_idx: {situation_idx}')
+                scenarios.append(self.select_scenario(seed = (map_idx, situation_idx)))
+
         # Loop through playing scenarios and get win rate for each scenario
-        for i in range(len(scenarios)):
+        for i in range(1, len(scenarios)):
             num_wins = 0
             for j in range(num_runs_per_scenario):
                 won = scenarios[i].go(freeze_weights = True)
                 if(won):
                     num_wins += 1
+            
             scenario_winrate[i] = num_wins/num_runs_per_scenario
         return scenario_winrate
    
@@ -62,7 +71,6 @@ class Trainer():
         for episode in episodes:
             episode.go(freeze_weights = False)
 
-
     def select_scenarios(self, num_scenerios):
         scenarios = []
         for i in range(0, num_scenerios):
@@ -71,7 +79,8 @@ class Trainer():
 
     # TODO verify if working :)
     # Select one of the 10 variants from the 5 situations and 2 maps
-    def select_scenario(self):
+    # PARAM [Tuple] seed: the scenario that we want this to return in the format (MapIdx, Situation)
+    def select_scenario(self, seed = None):
         # maps
         maps = ["trainingset/map1.txt", "trainingset/map2.txt"]
         
@@ -84,12 +93,19 @@ class Trainer():
                 
         # TODO random selection
         # Select Map
-        rand_map = maps[random.randint(0,1)]
-        
+        if(seed == None):
+            rand_map = maps[random.randint(0,1)]
+        else:
+            rand_map = maps[seed[0]]
         # Select Situation / Create it
-        rand_situation = random.randint(1,5)
+        if(seed == None):
+            rand_situation = random.randint(1,5)
+        else:
+            rand_situation = seed[1]
         
         g = TrainingGame.fromfile(rand_map)
+        g.add_character(self.agent)
+
         if (rand_situation == 2):
             g.add_monster(StupidMonster("stupid", "S", 3, 9))
         elif (rand_situation == 3):
@@ -155,28 +171,16 @@ class TrainingGame(Game):
             self.draw()
             step()
             self.world.next_decisions()
-            #TODO evaluate if win
-            print('Searching events')
+            # evaluate if win
             for event in self.events:
                 if(event.tpe == Event.CHARACTER_FOUND_EXIT):
                     return True
         return False
 
 if __name__ == "__main__":
-    # agent = q_agent.ExploitationAgent("me", "C", 0, 0)
-    # trainer = Trainer(agent)
-    # trainer.train()
-
-    #Testing for custom game
-    g = TrainingGame.fromfile('map.txt')
-
-    # TODO Add your character
-    agent = q_agent.ExploitationAgent
-    g.add_character(agent("me", # name
-                                "C",  # avatar
-                                0, 0  # position
-    ))
-
-    # Run!
-    print(g.go(wait = 1))
+    agent = q_agent.ExploitationAgent("me", "C", 0, 0)
+    trainer = Trainer(agent)
+    print(f'Trainor created')
+    print(f' winrate = {trainer.evaluate_winrate()}')
+    #trainer.train()
 

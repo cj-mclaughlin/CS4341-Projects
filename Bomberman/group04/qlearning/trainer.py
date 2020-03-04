@@ -139,10 +139,6 @@ class Trainer():
             f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
         f.close()
 
-<<<<<<< HEAD
-
-=======
->>>>>>> 19e317cfe334743d0fdd416d709da8ba7684e599
     # Get the reward value for a given state and action
     # PARAM[SensedWorld] state: the current state of the map
     # PARAM[list(Event)] events: the events that transpired with this action

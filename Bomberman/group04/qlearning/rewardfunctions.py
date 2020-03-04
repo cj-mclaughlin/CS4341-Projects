@@ -5,15 +5,15 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 import actions
-import events
+from events import Event
 from featurefunctions import post_action_location
 
 # Reward constant values
 R_LIVING = -1
 R_PER_WALL = 5
 R_PER_MONSTER = 100
-R_DIE = -1000
-R_WIN = 1000
+R_DIED = -1000
+R_WON = 1000
 
 
 # Reward component functions
@@ -25,15 +25,14 @@ def cost_of_living():
 
 
 # Function that rewards the agent for successfully blowing up one or more walls
-# PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(Event)] events: the events that transpired in the last step
-def blow_up_walls(state, events):
+def blew_up_walls(events):
     """Earn reward for every destroyed wall"""
     walls_hit = 0
 
-    # Iterate over events to see if the user hit walls
+    # Iterate over events to count how many walls were hit
     for ev in events:
-        if ev.tpe == event.BOMB_HIT_WALL:
+        if ev.tpe == Event.BOMB_HIT_WALL:
             walls_hit += 1
     
     return R_PER_WALL * walls_hit
@@ -44,76 +43,53 @@ def blow_up_walls(state, events):
 # death, as their moves cannot be predicted.
 
 # Function that rewards the agent for successfully killing one or more monsters
-# PARAM[SensedWorld] state: the current state of the map
-# PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def kill_monsters(state, action, character):
+# PARAM[list(Event)] events: the events that transpired in the last step
+def killed_monsters(events):
     """Earn reward for every killed monster"""
     monsters_hit = 0
 
-    # Iterate over bombs and monsters to see if they will hit enemies
-    for bomb in state.bombs.values():
-        # Reward for monsters moving into bomb blast zone
-        # Bombs blast before agents move, so being in range one frame before blasting causes death
-        if bomb.timer <= 1:
-            for monster_list in state.monsters.values():
-                for monster in monster_list:
-                    # Check if monster is in the x component of explosion
-                    if (abs(monster.x - bomb.x) <= state.expl_range and monster.y == bomb.y):
-                        monsters_hit += 1
-                    # y component
-                    elif (abs(monster.y - bomb.y) <= state.expl_range and monster.x == bomb.x):
-                        monsters_hit += 1
+    # Iterate over events to count how many monsters were hit
+    for ev in events:
+        if ev.tpe == Event.BOMB_HIT_MONSTER:
+            monsters_hit += 1
     
     return R_PER_MONSTER * monsters_hit
 
 
 # Function that gives a very negative reward if the action kills the agent
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def die(state, action, character):
-    """Earn negative reward if action kills the agent in this state"""
-    char_x, char_y = post_action_location(state, action, character)
-    if state.monsters_at(char_x, char_y) or state.explosion_at(char_x, char_y):
-        # Reward for moving into death
-        return R_DIE
+# PARAM[list(Event)] events: the events that transpired in the last step
+def died(state, events):
+    """Earn negative reward if agent is killed"""
+    # Iterate over events to check for death
+    for ev in events:
+        if ev.tpe == Event.CHARACTER_KILLED_BY_MONSTER or ev.tpe == Event.BOMB_HIT_CHARACTER:
+            # Reward for monster or explosive death
+            return R_DIED
 
     if state.time == 1:
         # Reward for out of time death
-        return R_DIE
-    
-    for bomb in state.bombs.values():
-        # Reward for moving into bomb blast zone
-        # Bombs blast before agents move, so being in range one frame before blasting causes death
-        if bomb.timer <= 1:
-            # Check if we are in the x component of explosion
-            if (abs(char_x - bomb.x) <= state.expl_range and char_y == bomb.y):
-                return R_DIE
-            # y component
-            elif (abs(char_y - bomb.y) <= state.expl_range and char_x == bomb.x):
-                return R_DIE
+        return R_DIED
 
     # Reward for survival
     return 0
 
 
 # Function that gives a very positive reward if the action results in a win for the agent
-# PARAM[SensedWorld] state: the current state of the map
-# PARAM[Action] action: the action to evaluate
-# PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def win(state, action, character):
-    """Earn positive reward if action causes the agent to win the game"""
-    char_x, char_y = post_action_location(state, action, character)
-    if state.exit_at(char_x, char_y):
-        # Reward for winning
-        return R_WIN
+# PARAM[list(Event)] events: the events that transpired in the last step
+def won(events):
+    """Earn positive reward if agent has won the game"""
+    # Iterate over events to check for win
+    for ev in events:
+        if ev.tpe == Event.CHARACTER_FOUND_EXIT:
+            # Reward for winning
+            return R_WON
     
     # Reward for not winning
     return 0
 
 
-# Get the reward value for a given state and new events
+# Get the reward value for a given state and events
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(Event)] events: the events that transpired in the last step
 def reward(state, events):
@@ -121,6 +97,10 @@ def reward(state, events):
     total_reward = 0
 
     # Sum reward returned from every reward function
-    total_reward += 
+    total_reward += cost_of_living()
+    total_reward += blew_up_walls(events)
+    total_reward += killed_monsters(events)
+    total_reward += died(state, events)
+    total_reward += won(events)
     
     return total_reward

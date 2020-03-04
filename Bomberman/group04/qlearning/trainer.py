@@ -1,9 +1,11 @@
 import sys
 sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
+sys.path.insert(2, '.')
 
 from game import Game
 from qlearning import q_agent
+import rewardfunctions
 import pygame as pg
 from events import Event
 
@@ -77,7 +79,7 @@ class Trainer():
     # Will (also decide if we want to look at a post-state action or take both the state and action and calulate resulting state)
     # TODO
     def reward(self, state, action):
-        pass
+        return rewardfunctions.reward(state, action)
     
 class TrainingGame(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):
@@ -131,5 +133,5 @@ if __name__ == "__main__":
     ))
 
     # Run!
-    print(g.go(wait = 1))
+    print(g.go(wait = 0))
 

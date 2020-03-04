@@ -6,13 +6,14 @@ class Action(Enum):
     WEST = 3
     EAST = 4
     BOMB = 5
+    STILL = 6
 # Representation of the directions associated with all the different actions
 # Directions held in the following format (x,y)
 ActionDirections = {
-    #TODO check to see if North and South directions are correct
     Action.NORTH : (0,-1),
     Action.SOUTH : (0,1),
     Action.WEST : (-1,0),
     Action.EAST : (1,0),
-    Action.BOMB : (0,0)
+    Action.BOMB : (0,0),
+    Action.STILL : (0,0)
 }

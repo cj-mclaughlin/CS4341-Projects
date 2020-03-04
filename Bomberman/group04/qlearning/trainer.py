@@ -2,9 +2,11 @@ import sys, os
 import random
 sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
+sys.path.insert(2, '.')
 
 from game import Game
 from qlearning import q_agent
+import rewardfunctions
 import pygame as pg
 from events import Event
 
@@ -137,11 +139,12 @@ class Trainer():
             f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
         f.close()
 
-    
-    # Will (also decide if we want to look at a post-state action or take both the state and action and calulate resulting state)
-    # TODO
-    def reward(self, state):
-        pass
+    # Get the reward value for a given state and action
+    # PARAM[SensedWorld] state: the current state of the map
+    # PARAM[Action] action: the action to evaluate
+    # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+    def reward(self, state, action, character):
+        return rewardfunctions.reward(state, action, self.agent)
     
 class TrainingGame(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):

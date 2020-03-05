@@ -57,7 +57,7 @@ class Trainer():
                 scenarios.append(self.select_scenario(seed = (map_idx, situation_idx)))
 
         # Loop through playing scenarios and get win rate for each scenario
-        for i in range(1, len(scenarios)):
+        for i in range(len(scenarios)):
             num_wins = 0
             for j in range(num_runs_per_scenario):
                 won = scenarios[i].go(freeze_weights = True)

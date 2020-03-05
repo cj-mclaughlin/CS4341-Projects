@@ -222,7 +222,7 @@ def reward(state, events):
     total_reward += hit_monsters(events)
     total_reward += can_hit_walls(state)
     total_reward += can_hit_monsters(state)
-    # total_reward += dist_to_exit(state)
+    total_reward += dist_to_exit(state)
     total_reward += died(state, events)
     total_reward += won(events)
     

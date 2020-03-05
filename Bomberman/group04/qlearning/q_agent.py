@@ -16,8 +16,7 @@ import random
 
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
-        #TODO don't hardcode
-        self.weights = [1,1,1,1,1]
+        self.weights = [1,1,1,-1,1] # TODO find better/random initialization
         self.feature_functions = fn.feature_functions
         super().__init__(name, avatar, x, y)
 
@@ -69,7 +68,7 @@ class ExploitationAgent(QAgent):
 class ExplorationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)
-        self.inital_alpha = 1
+        self.inital_alpha = 0.5
         self.alpha = self.inital_alpha
         self.generation = 1
         self.weights_filename = "bomberman_weights.txt"

@@ -146,14 +146,12 @@ def can_hit_monsters(state):
 
 # Gives a reward based on how far the agent is from the exit
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[list(Event)] events: the events that transpired in the last step
-def dist_to_exit(state):
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def dist_to_exit(state, character):
     """Earn reward based on closeness to exit"""
-    for character_list in state.characters.values():
-        character = character_list[0]
-        max_manhattan_dist = 27
-        closeness = 1 - (manhattan_dist(character.x, character.y, *state.exitcell) / max_manhattan_dist)
-        return R_NEAR_EXIT * closeness
+    max_manhattan_dist = 27
+    closeness = 1 - (manhattan_dist(character.x, character.y, *state.exitcell) / max_manhattan_dist)
+    return R_NEAR_EXIT * closeness
     
     # No character found
     return 0
@@ -211,7 +209,8 @@ def valid_loc(state, x, y):
 # Get the reward value for a given state and events
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(Event)] events: the events that transpired in the last step
-def reward(state, events):
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def reward(state, events, character):
     """Earn reward based on sum of every reward component"""
     total_reward = 0
 
@@ -222,7 +221,7 @@ def reward(state, events):
     total_reward += hit_monsters(events)
     total_reward += can_hit_walls(state)
     total_reward += can_hit_monsters(state)
-    total_reward += dist_to_exit(state)
+    total_reward += dist_to_exit(state, character)
     total_reward += died(state, events)
     total_reward += won(events)
     

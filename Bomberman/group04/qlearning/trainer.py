@@ -165,7 +165,7 @@ class Trainer():
     # PARAM[SensedWorld] state: the current state of the map
     # PARAM[list(Event)] events: the events that transpired in the last step
     def reward(self, state, events):
-        return rewardfunctions.reward(state, events)
+        return rewardfunctions.reward(state, events, self.agent)
     
 class TrainingGame(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):

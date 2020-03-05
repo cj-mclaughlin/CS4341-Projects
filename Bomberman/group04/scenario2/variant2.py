@@ -8,9 +8,14 @@ import random
 from game import Game
 from monsters.stupid_monster import StupidMonster
 
-# TODO This is your code!
-sys.path.insert(1, '../groupNN')
+# # Original Imports from Starter Code
+# sys.path.insert(1, '../group04')
 from testcharacter import TestCharacter
+from interactivecharacter import InteractiveCharacter
+
+# Q-Learning Agent
+sys.path.insert(1, '../group04')
+from qlearning import q_agent
 
 # Create the game
 random.seed(123) # TODO Change this if you want different random choices
@@ -20,11 +25,11 @@ g.add_monster(StupidMonster("stupid", # name
                             3, 9      # position
 ))
 
-# TODO Add your character
-g.add_character(TestCharacter("me", # name
-                              "C",  # avatar
-                              0, 0  # position
-))
+# TODO finalize weights
+agent = q_agent.ExploitationAgent("me", "C", 0, 0)
+# final_weights = [...]
+# agent.set_weights(final_weights)
+g.add_character(agent)
 
 # Run!
 g.go()

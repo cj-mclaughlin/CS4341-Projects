@@ -19,7 +19,8 @@ def dist_to_exit(state, action, character):
     exit_x, exit_y = state.exitcell
     furthest_dist_from_exit = manhattan_dist(0,0,exit_x,exit_y)
     
-    return manhattan_dist(new_x,new_y, exit_x, exit_y)/ furthest_dist_from_exit
+    # TODO lol should this be 1-? haha
+    return (manhattan_dist(new_x,new_y, exit_x, exit_y)/ furthest_dist_from_exit)
 
 # Function that returns distance to closest monster
 # PARAM[SensedWorld] state: the current state of the map

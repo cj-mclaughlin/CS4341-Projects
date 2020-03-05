@@ -129,6 +129,7 @@ class Trainer():
             rand_situation = seed[1]
         
         g = TrainingGame.fromfile(rand_map)
+        #self.agent.x, self.agent.y = 0, 12 # TODO test with placing it closer to the exit
         g.set_agent(self.agent)
         g.set_reward_function(self.reward)
 

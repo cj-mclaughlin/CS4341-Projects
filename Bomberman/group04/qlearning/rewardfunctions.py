@@ -152,10 +152,6 @@ def dist_to_exit(state, character):
     max_manhattan_dist = 27
     closeness = 1 - (manhattan_dist(character.x, character.y, *state.exitcell) / max_manhattan_dist)
     return R_NEAR_EXIT * closeness
-    
-    # No character found
-    return 0
-
 
 
 # Gives a very negative reward if the agent is killed or runs out of time

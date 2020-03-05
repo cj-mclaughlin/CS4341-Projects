@@ -228,6 +228,10 @@ def bomb_danger_zone(state, action, character):
         # really bad
         return 1
     
+    if (state.bomb_at(char_x, char_y)):
+        # Sitting on bomb can be dangerous
+        return 1
+    
     if (in_explosion_radius):
         # more bad depending on how close bomb is to going off
         return 1 / (bomb.timer + 1)

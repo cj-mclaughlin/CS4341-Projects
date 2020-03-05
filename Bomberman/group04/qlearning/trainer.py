@@ -89,11 +89,14 @@ class Trainer():
     def run_generation(self, num_episodes):
         episodes = self.select_scenarios(num_episodes)
         for episode in episodes:
+            # Reset agent position
+            self.agent.x, self.agent.y = 0, 0
             episode.go(freeze_weights = False)
             
         # update alpha value -- TODO consider updating this like epsilon instead
         self.agent.increment_generation()
         self.agent.update_alpha()
+        self.agent.update_epsilon()
 
     def select_scenarios(self, num_scenerios):
         scenarios = []
@@ -157,9 +160,13 @@ class Trainer():
             if (file_exists):
                 f.write("\n")
             else:
-                f.write("Generation # | Weights [Dist_Exit, Dist_Monster, Move_to_Gap, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate\n")
-            f.write("Generation {} | Weights {} | Winrate {}\n".format(generation_number, self.agent.weights, winrate))
-        f.close()
+                f.write("Generation # | Alpha, Epsilon | Weights [Dist_Exit, Dist_Monster, Move_to_Gap, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate\n")
+            f.write("Generation {0} | {1:.3f}, {2:.5f} | Weights {3} | Winrate {4}\n".format(
+                generation_number,
+                self.agent.alpha,
+                self.agent.epsilon,
+                self.agent.weights,
+                winrate))
 
     # Get the reward value for a given state and new events
     # PARAM[SensedWorld] state: the current state of the map

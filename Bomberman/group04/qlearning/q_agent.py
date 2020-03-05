@@ -16,8 +16,8 @@ import random
 
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
-        self.weights = [3,-5,3,-10,3] # TODO find better/random initialization
         self.feature_functions = fn.feature_functions
+        self.weights = [1 * len(self.feature_functions)] # TODO fix initialization
         super().__init__(name, avatar, x, y)
 
     def evaluate_move(self, state, action):
@@ -69,21 +69,13 @@ class ExploitationAgent(QAgent):
 class ExplorationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)
-        self.inital_alpha = 0.5
-        self.alpha = self.inital_alpha
+        self.alpha = 0.25
         self.generation = 1
         self.weights_filename = "bomberman_weights.txt"
-        self.epsilon = 1
-        self.num_actions_completed = 0
-        self.alpha_k = 0.1
-        self.epsilon_k = 0.15
+        self.epsilon = 0.9
+        self.epsilon_decrement = 0.001 # TODO what this should be
         self.last_action = Action.STILL
        
-    # Update alpha with exponential decay
-    # PARAM[float] k: scale factor for exponential decay
-    def update_alpha(self):
-        self.alpha = self.inital_alpha * math.exp(-self.alpha_k*self.generation)
-    
     # Update weights after taking a step in world
     # PARAM[float] reward: reward recieved for last action in world
     # PARAM[SensedWorld] current_state: the state of the world
@@ -115,15 +107,11 @@ class ExplorationAgent(QAgent):
         else:
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])
-        self.num_actions_completed += 1
 
-    def increment_generation(self):
-        self.generation += 1
-    
     def update_epsilon(self):
-        self.epsilon = math.exp(-self.epsilon_k * self.generation)
+        self.epsilon -= self.epsilon_decrement
 
     def generate_random_action(self):
-        action_num = random.randint(1,6)
+        action_num = random.randint(1,10)
         action = Action(action_num)
         return action

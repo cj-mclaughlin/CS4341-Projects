@@ -64,7 +64,7 @@ class Trainer():
                 if(won):
                     num_wins += 1
             
-            scenario_winrate[i] = num_wins/num_runs_per_scenario
+            scenario_winrate[i+1] = num_wins/num_runs_per_scenario
             
         # set our agent back to the exploration agent
         self.agent = exploration    
@@ -162,7 +162,7 @@ class Trainer():
             if (file_exists):
                 f.write("\n")
             else:
-                f.write("Generation # | Alpha, Epsilon | Weights [Dist_Exit, Dist_Monster, Move_to_Gap, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate\n")
+                f.write("Generation # | Alpha, Epsilon | Weights [Dist_Exit, Dist_Monster, Move_BFS, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate\n")
             f.write("Generation {0} | {1:.3f}, {2:.5f} | Weights {3} | Winrate {4}\n".format(
                 generation_number,
                 self.agent.alpha,
@@ -207,7 +207,7 @@ class TrainingGame(Game):
             reward = self.reward_fn(self.world, self.events)
             if (not freeze_weights):
                 self.agent.update_weights(reward, cur_state, self.world)
-            # self.draw() # TODO uncomment after training
+            self.draw() # TODO uncomment after training
             step()
             self.world.next_decisions()
             # evaluate if win

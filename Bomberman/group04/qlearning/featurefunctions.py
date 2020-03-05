@@ -1,5 +1,6 @@
 import os, sys
 import math
+import collections
 
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
@@ -19,8 +20,8 @@ def dist_to_exit(state, action, character):
     exit_x, exit_y = state.exitcell
     furthest_dist_from_exit = manhattan_dist(0,0,exit_x,exit_y)
     
-    # TODO lol should this be 1-? haha
-    return (manhattan_dist(new_x,new_y, exit_x, exit_y)/ furthest_dist_from_exit)
+    return 1/(manhattan_dist(new_x,new_y, exit_x, exit_y) + 1)
+    #return (manhattan_dist(new_x,new_y, exit_x, exit_y)/ furthest_dist_from_exit)
 
 # Function that returns distance to closest monster
 # PARAM[SensedWorld] state: the current state of the map
@@ -42,22 +43,61 @@ def dist_to_monster(state, action, character):
             if monster_dist < closest_monster_dist:
                 closest_monster_dist = monster_dist
 
-    # TODO specify vision 'radius'
-    if (closest_monster_dist < search_radius):
-        return 1-(closest_monster_dist/search_radius)
-    else:
-        return 0
+    return 1/(closest_monster_dist + 1)
 
-# Function which helps us figure out how tf to move around walls
+    # TODO specify vision 'radius'
+    #if (closest_monster_dist < search_radius):
+        #return 1-(closest_monster_dist/search_radius)
+    # else:
+    #     return 0
+
+# BFS to move around walls
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def move_around_walls(state, action, character):
+    new_x, new_y = post_action_location(state, action, character)
+    start = (new_x, new_y)
+    queue = collections.deque([[start]])
+    seen = set([start])
+    # perform bfs, leaving us with path to exit
+    while queue:
+        path = queue.popleft()
+        x, y = path[-1]
+        if x == state.exitcell[0] and y == state.exitcell[1]: # check if we have reached exit
+            return path
+        for x2, y2 in ((x+1,y), (x-1,y), (x,y+1), (x,y-1)):
+            if 0 <= x2 < state.width() and 0 <= y2 < state.height() and not state.wall_at(x2, y2) != True and (x2, y2) not in seen:
+                queue.append(path + [(x2, y2)])
+                seen.add((x2, y2))
+    next_step = path[0]
+    return 1 / (manhattan_dist(new_x, new_y, next_step[0], next_step[1]) + 1)
+
+
+# TODO Remove when we know we wont be using this
+# Function which helps us figure out how tf to move around walls
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def move_towards_gap(state, action, character):
     """Encourage movement to closest gap in next wall, if one exists"""
     dist_to_gap = math.inf
     new_x, new_y = post_action_location(state, action, character)
     
     bomb = find_bomb(state)
+    
+    # check if we're currently standing in a gap
+    has_walls = False
+    has_gap = False
+    for w in range(state.width()):
+        if not state.wall_at(w, new_y):
+            has_gap = True
+        else:
+            has_walls = True
+            
+    # we are in a gap
+    if (has_walls and has_gap and (character.y < new_y)):
+        return 1
     
     # find nearest row with a wall that we need to consider
     found_row_with_wall = False
@@ -99,9 +139,10 @@ def move_around_walls(state, action, character):
                         closest_gap = (w+1, h-1) # stand outside explosion
                     break
     
-    # still nothing lol
+    # shouldnt be here until end
     if (closest_gap is None):
-        return 0
+        print("here")
+        return 1/(manhattan_dist(new_x,new_y, state.exitcell[0], state.exitcell[1])+1)
     
     # verify that we're going in the direction of the next gap (and not into walls!)
     dx, dy = int(round(closest_gap[0] - character.x)), int(round(closest_gap[1] - character.y))
@@ -115,19 +156,22 @@ def move_around_walls(state, action, character):
         dy = -1
     a_x, a_y =  actions.ActionDirections[action][0], actions.ActionDirections[action][1]
     
-    if (closest_gap[0] == character.x and closest_gap[1] == character.y and action == actions.Action.STILL):
-        return 0
     
-    # check bounds
-    if (character.x + a_x >= state.width() or character.y + a_y >= state.height()):
-        return 0
+    return 1/(closest_gap_dist + 1)
     
-    # verify that action helps us go towards goal tile
-    if ((dx != a_x or state.wall_at(character.x + a_x, character.y + a_y)) and (dy != a_y or (state.wall_at(character.x + a_x, character.y + a_y)))):
-        #print("action dir ({},{}) not move us towards gap ({},{})".format(a_x, a_y, closest_gap[0], closest_gap[1]))
-        return 1 # moving away from gap is bad
-    else:
-        return 0
+    # if (closest_gap[0] == character.x and closest_gap[1] == character.y and action == actions.Action.STILL):
+    #     return 0
+    
+    # # check bounds
+    # if (character.x + a_x >= state.width() or character.y + a_y >= state.height()):
+    #     return 0
+    
+    # # verify that action helps us go towards goal tile
+    # if ((dx != a_x or state.wall_at(character.x + a_x, character.y + a_y)) and (dy != a_y or (state.wall_at(character.x + a_x, character.y + a_y)))):
+    #     #print("action dir ({},{}) not move us towards gap ({},{})".format(a_x, a_y, closest_gap[0], closest_gap[1]))
+    #     return 1 # moving away from gap is bad
+    # else:
+    #     return 0
 
 
 # Check that the new position is a valid move

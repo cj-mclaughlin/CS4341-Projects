@@ -16,7 +16,7 @@ import random
 
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
-        self.weights = [1,1,1,-1,1] # TODO find better/random initialization
+        self.weights = [3,-5,3,-10,3] # TODO find better/random initialization
         self.feature_functions = fn.feature_functions
         super().__init__(name, avatar, x, y)
 
@@ -24,7 +24,7 @@ class QAgent(CharacterEntity):
         move_util = 0
         #print("Evaluating action {}".format(action))
         for i in range(len(self.weights)):
-            #print("fn {} yielding {}*{}".format(i, self.weights[i], self.feature_functions[i](state, action, self)))
+            print("fn {} ({}*{}) yielding {}".format(i, self.weights[i], self.feature_functions[i](state, action, self), self.weights[i] * self.feature_functions[i](state, action, self)))
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
     
@@ -43,9 +43,10 @@ class QAgent(CharacterEntity):
         best_action = None
         best_action_val = -math.inf
         for a in Action:
-             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
-                 best_action = a
-                 best_action_val = self.evaluate_move(state, a)
+            print("{} value {}".format(a, self.evaluate_move(state, a)))
+            if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
+                best_action = a
+                best_action_val = self.evaluate_move(state, a)
         return best_action
 
 class ExploitationAgent(QAgent):

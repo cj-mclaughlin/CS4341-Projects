@@ -90,7 +90,8 @@ class Trainer():
         episodes = self.select_scenarios(num_episodes)
         for episode in episodes:
             # Reset agent position
-            self.agent.x, self.agent.y = 0, 0
+            #self.agent.x, self.agent.y = 0, 0
+            self.agent.x, self.agent.y = 0, 12
             episode.go(freeze_weights = False)
             
         # update alpha value -- TODO consider updating this like epsilon instead

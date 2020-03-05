@@ -213,8 +213,8 @@ def reward(state, events, character):
     # Sum reward returned from every reward function
     total_reward += cost_of_living()
     total_reward += using_bomb(state)
-    total_reward += hit_walls(events)
-    total_reward += hit_monsters(events)
+    #total_reward += hit_walls(events)
+    #total_reward += hit_monsters(events)
     total_reward += can_hit_walls(state)
     total_reward += can_hit_monsters(state)
     total_reward += dist_to_exit(state, character)

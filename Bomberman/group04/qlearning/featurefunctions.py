@@ -65,9 +65,9 @@ def move_around_walls(state, action, character):
         path = queue.popleft()
         x, y = path[-1]
         if x == state.exitcell[0] and y == state.exitcell[1]: # check if we have reached exit
-            return path
+            break
         for x2, y2 in ((x+1,y), (x-1,y), (x,y+1), (x,y-1)):
-            if 0 <= x2 < state.width() and 0 <= y2 < state.height() and not state.wall_at(x2, y2) != True and (x2, y2) not in seen:
+            if 0 <= x2 < state.width() and 0 <= y2 < state.height() and not state.wall_at(x2, y2) and (x2, y2) not in seen:
                 queue.append(path + [(x2, y2)])
                 seen.add((x2, y2))
     next_step = path[0]

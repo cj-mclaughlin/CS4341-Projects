@@ -24,7 +24,7 @@ class QAgent(CharacterEntity):
         move_util = 0
         #print("Evaluating action {}".format(action))
         for i in range(len(self.weights)):
-            print("fn {} ({}*{}) yielding {}".format(i, self.weights[i], self.feature_functions[i](state, action, self), self.weights[i] * self.feature_functions[i](state, action, self)))
+            #print("fn {} ({}*{}) yielding {}".format(i, self.weights[i], self.feature_functions[i](state, action, self), self.weights[i] * self.feature_functions[i](state, action, self)))
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
     
@@ -43,7 +43,7 @@ class QAgent(CharacterEntity):
         best_action = None
         best_action_val = -math.inf
         for a in Action:
-            print("{} value {}".format(a, self.evaluate_move(state, a)))
+            # print("{} value {}".format(a, self.evaluate_move(state, a)))
             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
                 best_action = a
                 best_action_val = self.evaluate_move(state, a)

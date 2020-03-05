@@ -74,8 +74,8 @@ class ExplorationAgent(QAgent):
         self.weights_filename = "bomberman_weights.txt"
         self.epsilon = 1
         self.num_actions_completed = 0
-        self.alpha_k = 0.08
-        self.epsilon_k = 0.1
+        self.alpha_k = 0.1
+        self.epsilon_k = 0.15
         self.last_action = Action.STILL
        
     # Update alpha with exponential decay

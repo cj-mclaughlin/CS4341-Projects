@@ -44,7 +44,7 @@ def dist_to_exit(state, action, character):
     new_loc = post_action_location(state, action, character)
     path = bfs(new_loc, state.exitcell)
 
-    # Shouldn't happen, but just in case
+    # No path found
     if path is None:
         return 0
 
@@ -107,6 +107,22 @@ def bomb_danger_zone(state, action, character):
         return 1 / (bomb.timer + 1)
     
     # no active bombs or explosion on new tile
+    return 0
+
+
+# Feature for detecting if a path to the exit exists
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def no_path(state, action, character):
+    """Feature returns 1 if no exit path, 0 otherwise"""
+    new_loc = post_action_location(state, action, character)
+    path = bfs(new_loc, state.exitcell)
+    if path is None:
+        # No path
+        return 1
+    
+    # Path found
     return 0
 
 

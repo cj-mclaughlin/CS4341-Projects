@@ -9,7 +9,8 @@ from featurefunctions import post_action_location
 
 # Reward constant values
 R_LIVING = 0
-R_EXITED = 10
+R_BREAK_DOWN = 15
+R_EXITED = 15
 R_DIED = -50
 
 # Checking tiles adjacent
@@ -24,6 +25,22 @@ DY = [-1, -1, 0, 1, 1, 1, 0, -1]
 def cost_of_living():
     """Return a constant, negative reward that represents the cost of living"""
     return R_LIVING
+
+
+# Gives a positive reward for placing a bomb where it can break a block to the south
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[int] : positive reward for aiming a bomb to the south, 0 otherwise
+def break_down(state, action, character):
+    """Earn reward if agent places a bomb to destory a southern block"""
+    if action == actions.Action.BOMB:
+        for i in range(1, state.expl_range + 1):
+            if state.wall_at(character.x, character.y + i):
+                # Wall found in south direction
+                return R_BREAK_DOWN
+    # No bomb or bomb misses southern wall
+    return 0
 
 
 # Gives a very negative reward if the agent is killed by bomb or monster

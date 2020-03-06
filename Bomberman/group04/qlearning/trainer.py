@@ -1,4 +1,4 @@
-import sys, os
+import sys, os, copy
 import random
 sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
@@ -10,6 +10,8 @@ import rewardfunctions
 import pygame as pg
 from events import Event
 
+from trainingscenarios import TrainingScenario
+
 from monsters.stupid_monster import StupidMonster
 from monsters.selfpreserving_monster import SelfPreservingMonster
 
@@ -20,41 +22,23 @@ class Trainer():
         self.agent = agent
         self.weightsfile = weightsfile
     
-    # Vlad
-    # Takes the current agent and plays each scenario 10 times
-    # Then returns the winrate for each scenario
-    def evaluate_winrate(self):
+    # Evaluation of agent against sub scenarios
+    # PARAM[filename] training_pickle: serialized copy of list of scenarios we want to train against
+    def evaluate_winrate(self, training_pickle):
         num_runs_per_scenario = 10
         num_maps = 2
         num_situations = 5
         
-        exploration = self.agent # old agent to remember
-        old_weights = exploration.weights
+        # Use an Exploitation Agent
+        exploitation = q_agent.ExploitationAgent("me", "C", 0, 0)
+        exploitation.set_weights(copy.deepcopy(self.agent.weights))
+        self.agent = exploitation
         
-        # create exploitation agent with same weights
-        test_agent = q_agent.ExploitationAgent("me", "C", 0, 0)
-        test_agent.set_weights(old_weights)
-        
-        self.agent = test_agent
-        
-        scenario_winrate = {
-            1: 0,
-            2: 0,
-            3: 0,
-            4: 0,
-            5: 0,
-            6: 0,
-            7: 0,
-            8: 0,
-            9: 0,
-            10: 0
-        }
-        # Create a queue of scenarios to play
+        # Use pickled list of training scenarios
         scenarios = []
-        for map_idx in range(num_maps):
-            for situation_idx in range(num_situations):
-                # print(f'map_idx: {map_idx} situation_idx: {situation_idx}')
-                scenarios.append(self.select_scenario(seed = (map_idx, situation_idx)))
+        # unpickle list of training scenarios into list
+        
+        scenario_winrate = {i: 0 for i in scenarios}
 
         # Loop through playing scenarios and get win rate for each scenario
         for i in range(len(scenarios)):
@@ -64,92 +48,75 @@ class Trainer():
                 if(won):
                     num_wins += 1
             
-            scenario_winrate[i+1] = num_wins/num_runs_per_scenario
-            
-        # set our agent back to the exploration agent
-        self.agent = exploration    
+            scenario_winrate[i] = num_wins/num_runs_per_scenario
+        
+        exploration = q_agent.ExplorationAgent("me", "C", 0, 0)
+        exploration.set_weights(copy.deepcopy(self.agent.weights))
+        self.agent = exploration
         
         return scenario_winrate
    
-    # Vlad
     # Train the agent that is  
     def train(self):
         # select scenarios
-        num_episodes = 25
-        num_generations = 25
+        num_episodes = 12 # TODO make this 1? idk
+        num_generations = 50
+
+        # (for now) generate random pool of scenarios
+        scenarios = []
+        for i in range(num_episodes):
+            scenarios.append(self.random_scenario())
+        
         for generation_number in range(num_generations):
-            self.run_generation(num_episodes)
+            self.run_generation(num_episodes, scenarios) # running all scenarios from pool
             self.write_progress(generation_number) 
-            
-            # check for convergence
-            if (self.agent.alpha < 0.1):
-                print("Stopping early due to alpha convergence")
-                break
-    
-    def run_generation(self, num_episodes):
-        episodes = self.select_scenarios(num_episodes)
+
+    def run_generation(self, num_episodes, pool_scenarios):
+        episodes = self.select_scenarios(num_episodes, pool_scenarios)
         for episode in episodes:
             # Reset agent position
-            #self.agent.x, self.agent.y = 0, 0
-            self.agent.x, self.agent.y = 0, 12
+            self.agent.x, self.agent.y = 0, 0
             episode.go(freeze_weights = False)
             
-        # update alpha value -- TODO consider updating this like epsilon instead
-        self.agent.increment_generation()
-        self.agent.update_alpha()
+        # update epsilon value
         self.agent.update_epsilon()
+        
+        
+    # select num_scenarios from pool_scenarios
+    # PARAM[int] num_scenarios: how many to choose
+    # PARAM[list:TrainingScenario]: which games to choose from
+    def select_scenarios(self, num_scenerios, pool_scenarios):
+        return random.choices(pool_scenarios, k=num_scenerios)
 
-    def select_scenarios(self, num_scenerios):
-        scenarios = []
-        for i in range(0, num_scenerios):
-            scenarios.append(self.select_scenario())
-        return scenarios
-
-    # Select one of the 10 variants from the 5 situations and 2 maps
-    # PARAM [Tuple] seed: the scenario that we want this to return in the format (MapIdx, Situation)
-    def select_scenario(self, seed = None):
+    # Generate a random training scenario
+    # PARAM [Boolean] exploitation: whether or not to run the scenario in exploration or exploitation
+    def random_scenario(self):
         # maps
-        maps = ["trainingset/map1.txt", "trainingset/map2.txt"]
+        p, d, mapfiles = next(os.walk("scenarios/"))
+        maps = ["scenarios/map"+str(i)+".txt" for i in range(1,len(mapfiles)+1)]
         
-        # situations
-        # 1 - no monster
-        # 2 - stupid monster at (3,9)
-        # 3 - self preserving monster at (3,9) with detection range 1
-        # 4 - self preserving monster at (3,13) with detection range 2
-        # 5 - stupid monster at (3,5) and self preserving monster at (3,13) with detection range 2
-                
         # Select Map
-        if(seed == None):
-            rand_map = maps[random.randint(0,1)]
-        else:
-            rand_map = maps[seed[0]]
-        # Select Situation / Create it
-        if(seed == None):
-            rand_situation = random.randint(1,5)
-        else:
-            rand_situation = seed[1]
-        
-        g = TrainingGame.fromfile(rand_map)
-        #self.agent.x, self.agent.y = 0, 12 # TODO test with placing it closer to the exit
-        g.set_agent(self.agent)
-        g.set_reward_function(self.reward)
+        rand_map = maps[random.randint(1,len(mapfiles)+1)]
 
-        if (rand_situation == 2):
-            g.add_monster(StupidMonster("stupid", "S", 3, 9))
-        elif (rand_situation == 3):
-            g.add_monster(SelfPreservingMonster("selfpreserving", "S",3, 9, 1))
-        elif (rand_situation == 4):
-            g.add_monster(SelfPreservingMonster("selfpreserving", "S",3, 13, 2))
-        elif (rand_situation == 5):
-            g.add_monster(StupidMonster("stupid", "S", 3, 5))
-            g.add_monster(SelfPreservingMonster("selfpreserving", "S",3, 13, 2))
+        # Game object
+        g = TrainingScenario.fromfile(rand_map)
+        
+        # Random drop agent and a monster
+        # Drop agent in first or second row
+        self.agent_x, self.agent_y = random.randint(0,TrainingScenario.world.width()), random.randint(0,1)
+
+        g.set_reward_function(self.reward)
+        
+        max_x = max(g.width(), self.agent_x+5)
+        monster_x, monster_y = random.randint(0, g.width()), random.randint(self.agent_y+5, self.agent_y+6)
+
+        # TODO think if we should include stupid monsters
+        g.add_monster(SelfPreservingMonster("selfpreserving", "S", monster_x, monster_y, 2))
         
         return g
             
     
-    # TODO verify if working :)
-    # Output generation #, weights and current winrate after playing each scenarios 10x to file
-    # PARAM [int] generation_number: which generation we are on
+    # Output data to file
     def write_progress(self, generation_number):
         # check if we are creating or appending
         file_exists = False
@@ -157,18 +124,11 @@ class Trainer():
             file_exists = True # should be appending to weights file
         
         # write winrate to file
-        winrate = self.evaluate_winrate()
+        #winrate = self.evaluate_winrate()
         with open(self.weightsfile, 'a+') as f:
-            if (file_exists):
-                f.write("\n")
-            else:
-                f.write("Generation # | Alpha, Epsilon | Weights [Dist_Exit, Dist_Monster, Move_BFS, Bomb_Danger_Zone, Blocking_Wall_In_Bomb_Range] | Winrate\n")
-            f.write("Generation {0} | {1:.3f}, {2:.5f} | Weights {3} | Winrate {4}\n".format(
-                generation_number,
-                self.agent.alpha,
-                self.agent.epsilon,
-                self.agent.weights,
-                winrate))
+            if (not file_exists):
+                f.write("Generation # | Epsilon | Weights [ TODO ] | Winrate\n")
+            # TODO write agent generation and winrate etc ...
 
     # Get the reward value for a given state and new events
     # PARAM[SensedWorld] state: the current state of the map

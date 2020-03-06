@@ -75,8 +75,8 @@ class ExplorationAgent(QAgent):
         self.alpha = 0.25
         self.generation = 1
         self.weights_filename = "bomberman_weights.txt"
-        self.epsilon = 0.9
-        self.epsilon_decrement = 0.001 # TODO what this should be
+        self.epsilon = 0.6
+        self.epsilon_decrement = 0.05 # TODO what this should be
         self.last_action = Action.STILL
             
     # Update weights after taking a step in world

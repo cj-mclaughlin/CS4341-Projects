@@ -24,21 +24,25 @@ class Trainer():
     
     # Evaluation of agent against sub scenarios
     # PARAM[filename] training_pickle: serialized copy of list of scenarios we want to train against
-    def evaluate_winrate(self, training_pickle):
-        num_runs_per_scenario = 10
-        num_maps = 2
-        num_situations = 5
+    def evaluate_winrate(self):
+        num_runs_per_scenario = 5
+        num_scenarios = 10
         
+        old_epsilon = self.agent.epsilon
+
         # Use an Exploitation Agent
         exploitation = q_agent.ExploitationAgent("me", "C", 0, 0)
         exploitation.set_weights(copy.deepcopy(self.agent.weights))
         self.agent = exploitation
         
-        # Use pickled list of training scenarios
-        scenarios = []
-        # unpickle list of training scenarios into list
+        # TODO potentially serialize scenarios
         
-        scenario_winrate = {i: 0 for i in scenarios}
+        scenarios = []
+        for i in range(num_scenarios):
+            scenarios.append(self.random_scenario())
+    
+        
+        scenario_winrate = {i: 0 for i in range(len(scenarios))}
 
         # Loop through playing scenarios and get win rate for each scenario
         for i in range(len(scenarios)):
@@ -52,6 +56,7 @@ class Trainer():
         
         exploration = q_agent.ExplorationAgent("me", "C", 0, 0)
         exploration.set_weights(copy.deepcopy(self.agent.weights))
+        exploration.epsilon = old_epsilon
         self.agent = exploration
         
         return scenario_winrate
@@ -76,7 +81,7 @@ class Trainer():
     def run_generation(self, num_episodes):
         for i in range(num_episodes):
             testingscenario = self.random_scenario()
-            testingscenario.go(wait=0, freeze_weights=False)
+            testingscenario.go(wait=1, freeze_weights=False)
         self.agent.update_epsilon()
 
 
@@ -133,15 +138,16 @@ class Trainer():
             file_exists = True # should be appending to weights file
         
         # write winrate to file
-        #winrate = self.evaluate_winrate()
+        winrate = self.evaluate_winrate()
         with open(self.weightsfile, 'a+') as f:
             if not file_exists:
-                f.write("Generation ## | Epsilon | Exit___ Monster Threat_ Bomb___ No_path | Winrate\n\n")
+                f.write("Generation ## | Epsilon | Dist_Exit Dist_Monster Vector_Threat Bomb_Threat No_Path | Winrate\n\n")
             
-            f.write("Generation {0:2d} | {1:.5f} | {2:7.1f} {3:7.1f} {4:7.1f} {5:7.1f} {6:7.1f} |\n\n".format(
+            f.write("Generation {0:2d} | {1:.5f} | {2:7.1f} {3:7.1f} {4:7.1f} {5:7.1f} {6:7.1f} | ".format(
                 generation_number,
                 self.agent.epsilon,
                 *self.agent.weights))
+            f.write("{}\n".format(winrate))         
 
 
     # Get the reward value for a given state and action

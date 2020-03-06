@@ -53,7 +53,7 @@ class QAgent(CharacterEntity):
         best_action = Action.STILL
         best_action_val = -math.inf
         for a in Action:
-            # print("{} value {}".format(a, self.evaluate_move(state, a)))
+            #print("{} value {}".format(a, self.evaluate_move(state, a)))
             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
                 best_action = a
                 best_action_val = self.evaluate_move(state, a)
@@ -234,8 +234,8 @@ class ExplorationAgent(QAgent):
         self.alpha = 0.25
         self.generation = 1
         self.weights_filename = "bomberman_weights.txt"
-        self.epsilon = 0.6
-        self.epsilon_decrement = 0.05 # TODO what this should be
+        self.epsilon = 0.8
+        self.epsilon_decrement = 0.025 # TODO what this should be
         self.last_action = Action.STILL
             
     # Update weights after taking a step in world
@@ -248,15 +248,15 @@ class ExplorationAgent(QAgent):
     def update_weights(self, reward_fn, current_state, next_state, discount=0.9):
         current_action = self.last_action
         reward = rewardfunctions.reward(current_state, current_action, self)
-        print("reward in update_weights evaluating to {}".format(reward))
+        #print("reward in update_weights evaluating to {}".format(reward))
         current_utility = self.evaluate_move(current_state, current_action)
         next_action = self.determine_best_action(next_state)
         # delta = r + v(max(a')(Q(s',a'))) - Q(s,a)
         delta = (reward + (discount*self.evaluate_move(next_state, next_action))) - current_utility
-        print("delta value found to be {}".format(delta))
+        #print("delta value found to be {}".format(delta))
         # wi = wi + a*delta*fi(s,a)
         for w_idx in range(len(self.weights)):
-            print("weight {}, val {}, changing by {}".format(w_idx, self.weights[w_idx], self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)))
+            #print("weight {}, val {}, changing by {}".format(w_idx, self.weights[w_idx], self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)))
             self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)
 
     def do(self, world):

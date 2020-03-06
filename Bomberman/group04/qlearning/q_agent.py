@@ -89,12 +89,15 @@ class ExplorationAgent(QAgent):
     def update_weights(self, reward_fn, current_state, next_state, discount=0.9):
         current_action = self.last_action
         reward = rewardfunctions.reward(current_state, current_action, self)
+        print("reward in update_weights evaluating to {}".format(reward))
         current_utility = self.evaluate_move(current_state, current_action)
         next_action = self.determine_best_action(next_state)
         # delta = r + v(max(a')(Q(s',a'))) - Q(s,a)
         delta = (reward + (discount*self.evaluate_move(next_state, next_action))) - current_utility
+        print("delta value found to be {}".format(delta))
         # wi = wi + a*delta*fi(s,a)
         for w_idx in range(len(self.weights)):
+            print("weight {}, val {}, changing by {}".format(w_idx, self.weights[w_idx], self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)))
             self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)
 
     def do(self, world):

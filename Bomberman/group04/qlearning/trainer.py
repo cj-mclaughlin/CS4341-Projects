@@ -76,7 +76,8 @@ class Trainer():
     def run_generation(self, num_episodes):
         for i in range(num_episodes):
             testingscenario = self.random_scenario()
-            testingscenario.go(wait=1, freeze_weights=False)
+            testingscenario.go(wait=0, freeze_weights=False)
+        self.agent.update_epsilon()
 
 
     # def run_generation(self, num_episodes, pool_scenarios):
@@ -149,43 +150,3 @@ class Trainer():
     # PARAM[MovableEntity] character: the bomberman character this is evaluating for
     def reward(self, state, events):
         return rewardfunctions.reward(state, events, self.agent)
-    
-class TrainingGame(Game):
-    def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):
-        super().__init__(width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir)
-    
-    def set_agent(self, agent):
-        self.agent = agent
-        super().add_character(self.agent)
-
-    def set_reward_function(self, reward_fn):
-        self.reward_fn = reward_fn
-
-    # Overload go function to run
-    # RETURN [Boolean]: whether or not the game was completed by the agent
-    def go(self, wait=1, freeze_weights = True):
-        if wait == 0:
-            def step():
-                pg.event.clear()
-                # print(featurefunctions.bomb_danger_zone(self.world, None))
-                input("Press Enter to continue or CTRL-C to stop...")
-        else:
-            def step():
-                pg.time.wait(abs(wait))
-
-        # self.draw()
-        step()
-        while not self.done():
-            cur_state = self.world
-            (self.world, self.events) = self.world.next()
-            reward = self.reward_fn(self.world, self.events)
-            if (not freeze_weights):
-                self.agent.update_weights(reward, cur_state, self.world)
-            self.draw() # TODO uncomment after training
-            step()
-            self.world.next_decisions()
-            # evaluate if win
-            for event in self.events:
-                if(event.tpe == Event.CHARACTER_FOUND_EXIT):
-                    return True
-        return False

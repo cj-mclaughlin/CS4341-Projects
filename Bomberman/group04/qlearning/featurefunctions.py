@@ -52,6 +52,26 @@ def dist_to_exit(state, action, character):
     return 1 / (len(path) + 1)
 
 
+# Feature based on monsters blocking character path
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def monster_threat(state, action, character):
+    """Feature value that is higher when monster poses more of a threat to the path"""
+    new_x, new_y = post_action_location(state, action, character)
+    vec_to_exit = (state.exitcell[0] - new_x, state.exitcell[1] - new_y)
+
+    max_threat = -1
+    for monster in state.monsters.values():
+        vec_to_monster = (monster.x - new_x, monster.y - new_y)
+        threat = dotp(vec_to_exit, vec_to_monster)
+        if threat > max_threat:
+            max_threat = threat
+
+    # Normalize for feature value
+    return 0.5 * max_threat + 0.5
+
+
 # BFS for optimal path
 # PARAM[SensedWorld] state: the current state of the board
 # PARAM[tuple(int, int)] start: starting coordinates
@@ -97,6 +117,15 @@ def post_action_location(state, action, character):
         new_x, new_y = cur_x, cur_y
     
     return new_x, new_y
+
+
+# Compute the dot product of two vectors
+# PARAM[tuple(int...)] v1: the first vector
+# PARAM[tuple(int...)] v2: the second vector
+def dotp(v1, v2):
+    """Return the dot product of the two vectors"""
+    return sum([v1[i] * v2[i] for i in range(len(v1))])
+
 
 
 # TODO export function

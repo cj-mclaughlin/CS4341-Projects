@@ -39,8 +39,7 @@ class Trainer():
         
         scenarios = []
         for i in range(num_scenarios):
-            scenarios.append(self.random_scenario())
-    
+            scenarios.append(self.random_scenario())   
         
         scenario_winrate = {i: 0 for i in range(len(scenarios))}
 
@@ -48,6 +47,7 @@ class Trainer():
         for i in range(len(scenarios)):
             num_wins = 0
             for j in range(num_runs_per_scenario):
+                scenarios[i].add_agent() # add its agent to the game
                 won = scenarios[i].go(freeze_weights = True)
                 if(won):
                     num_wins += 1
@@ -81,6 +81,8 @@ class Trainer():
     def run_generation(self, num_episodes):
         for i in range(num_episodes):
             testingscenario = self.random_scenario()
+            testingscenario.set_agent(self.agent)
+            testingscenario.add_agent()
             testingscenario.go(wait=1, freeze_weights=False)
         self.agent.update_epsilon()
 

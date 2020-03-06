@@ -18,8 +18,12 @@ class TrainingScenario(Game):
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):
         super().__init__(width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir)
 
+    # set agent for scenario
     def set_agent(self, agent):
         self.agent = agent
+
+    # add the agent to the game
+    def add_agent(self):
         super().add_character(self.agent)
 
     def set_reward_function(self, reward_fn):
@@ -27,7 +31,7 @@ class TrainingScenario(Game):
 
     # Overload go function to run
     # RETURN [Boolean]: whether or not the game was completed by the agent
-    def go(self, wait=1, freeze_weights = True):
+    def go(self, wait=1, freeze_weights = True, draw=False):
         if wait == 0:
             def step():
                 pg.event.clear()
@@ -37,14 +41,16 @@ class TrainingScenario(Game):
             def step():
                 pg.time.wait(abs(wait))
 
-        # self.draw()
+        if (draw):
+            self.draw()
         step()
         while not self.done():
             cur_state = self.world
             (self.world, self.events) = self.world.next()
             if not freeze_weights:
                 self.agent.update_weights(self.reward_fn, cur_state, self.world)
-            # self.draw() # TODO uncomment after training
+            if (draw):
+                self.draw()
             step()
             self.world.next_decisions()
             # evaluate if win

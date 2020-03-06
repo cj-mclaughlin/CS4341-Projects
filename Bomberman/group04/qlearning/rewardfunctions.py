@@ -5,11 +5,16 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 import actions
+from featurefunctions import post_action_location
 
 # Reward constant values
 R_LIVING = 0
 R_EXITED = 10
 R_KILLED = -50
+
+# Checking tiles adjacent
+DX = [0, 1, 1, 1, 0, -1, -1, -1]
+DY = [-1, -1, 0, 1, 1, 1, 0, -1]
 
 
 # Reward component functions
@@ -20,16 +25,30 @@ def cost_of_living(state, action, character):
     return R_LIVING
 
 
-# Gives a very negative reward if the agent is killed or runs out of time
+# Gives a very negative reward if the agent is killed by bomb or monster
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[list(Event)] events: the events that transpired in the last step
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
 def died(state, action, character):
-    """Earn negative reward if agent is killed or out of time"""
-    # Iterate over events to check for death
-    for ev in events:
-        if ev.tpe == Event.CHARACTER_KILLED_BY_MONSTER or ev.tpe == Event.BOMB_HIT_CHARACTER:
-            # Reward for monster or explosive death
+    """Earn negative reward if agent is killed"""
+    new_x, new_y = post_action_location(state, action, character)
+
+    # Check for explosive death
+    if state.explosion_at(new_x, new_y):
+        return R_DIED
+    
+    # If moving within one step of a monster, aggressive monsters will kill
+    for i in range(len(DX)):
+        if state.monsters_at(new_x + DX[i], new_y + DY[i]):
             return R_DIED
+    
+    # If moving into bomb range with one or two steps on bomb timer, also certain death
+    for bomb in state.bombs.values():
+        if bomb.timer <= 1:
+            if new_x == bomb.x and abs(new_y - bomb.y) <= state.expl_range:
+                return R_DIED
+            if new_y == bomb.y and abs(new_x - bomb.x) <= state.expl_range:
+                return R_DIED
 
     # Reward for survival
     return 0

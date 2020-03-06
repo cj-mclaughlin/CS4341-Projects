@@ -68,12 +68,13 @@ class Player(QAgent):
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search
-        return best_next_move_vec == None
+        return state.wall_at(best_next_move_vec[0], best_next_move_vec[1])
 
     def do(self, world):
         is_safe, best_path_vec = self.is_safe(world)
         if(is_safe):
-            if(self.should_place_bomb(world, best_path_vec)):
+            print(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1])))
+            if(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1]))):
                 self.place_bomb()
             else:
                 #Make move to best postition based on best path
@@ -199,7 +200,7 @@ class Player(QAgent):
                 #Check that the value is a valid move
                 if 0 <= x2 < state.width() and 0 <= y2 < state.height():
                     new_cost = cost_so_far[(x,y)] + 1 + h(state, x2, y2)
-                    if(y2 ==4): print(x2, y2, new_cost)
+
                     if((x2,y2) not in cost_so_far or new_cost < cost_so_far[(x2,y2)]):
                         cost_so_far[(x2,y2)] = new_cost
                         priority = new_cost
@@ -209,7 +210,6 @@ class Player(QAgent):
         #Loop back and find optimal move vector
         cur_coor = current
         while(came_from[cur_coor] != start):
-            print(cur_coor)
             cur_coor = came_from[cur_coor]
         
         return (cur_coor[0] - start[0], cur_coor[1] - start[1])

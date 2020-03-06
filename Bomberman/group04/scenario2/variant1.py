@@ -17,11 +17,11 @@ from qlearning import q_agent
 g = Game.fromfile('map.txt')
 
 # TODO Add your character
-agent = q_agent.ExploitationAgent
+agent = q_agent.Player
 g.add_character(agent("me", # name
                               "C",  # avatar
                               0, 0  # position
 ))
 
 # Run!
-g.go()
+g.go(0)

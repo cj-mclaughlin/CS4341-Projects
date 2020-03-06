@@ -7,6 +7,8 @@ sys.path.append(file_dir)
 
 import actions
 
+import numpy as np
+
 
 # TODO feature functions for small boards lol
 
@@ -60,13 +62,27 @@ def dist_to_exit(state, action, character):
 def monster_threat(state, action, character):
     """Feature value that is higher when monster poses more of a threat to the path"""
     new_x, new_y = post_action_location(state, action, character)
-    vec_to_exit = (state.exitcell[0] - new_x, state.exitcell[1] - new_y)
+    vec_to_exit = (state.exitcell[0] - new_x, state.exitcell[1] - new_y) # old way
+    
+    # try normalizing before
+    np_vec_to_exit = np.asarray(vec_to_exit)
+    exit_vec_len = np.linalg.norm(np_vec_to_exit)
+    
+    norm_vec_to_exit = np_vec_to_exit / exit_vec_len
 
     max_threat = -1
     for monsterlist in state.monsters.values():
         for monster in monsterlist:
-            vec_to_monster = (monster.x - new_x, monster.y - new_y)
-            threat = dotp(vec_to_exit, vec_to_monster)
+            vec_to_monster = (monster.x - new_x, monster.y - new_y) # old way
+            
+            # try normalizing before
+            np_vec_to_monster = np.asarray(vec_to_monster)
+            monster_vec_len = np.linalg.norm(np_vec_to_monster)
+            
+            norm_vec_to_monster = np_vec_to_monster / monster_vec_len
+            
+            #threat = dotp(vec_to_exit, vec_to_monster) # old way
+            threat = dotp(norm_vec_to_exit, norm_vec_to_monster)
             if threat > max_threat:
                 max_threat = threat
 

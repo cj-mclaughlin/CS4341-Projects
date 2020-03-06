@@ -8,9 +8,9 @@ import actions
 from featurefunctions import post_action_location
 
 # Reward constant values
-R_LIVING = 0 # TODO test with small cost of living
+R_LIVING = -0.1 # TODO test with small cost of living
 R_BREAK_DOWN = 15
-R_EXITED = 15
+R_EXITED = 35
 R_DIED = -50
 
 # Checking tiles adjacent

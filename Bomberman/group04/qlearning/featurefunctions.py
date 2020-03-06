@@ -21,11 +21,12 @@ def dist_to_monster(state, action, character):
     shortest_path = None
     
     # Iterate over all monsters in world
-    for monster in state.monsters.values():
-        path = bfs(new_loc, (monster.x, monster.y))
-        if path is not None and len(path) < shortest_len:
-            shortest_path = path
-            shortest_len = len(path)
+    for monsterlist in state.monsters.values():
+        for monster in monsterlist:
+            path = bfs(state, new_loc, (monster.x, monster.y))
+            if path is not None and len(path) < shortest_len:
+                shortest_path = path
+                shortest_len = len(path)
 
     if shortest_path is None:
         # No monsters
@@ -42,7 +43,7 @@ def dist_to_monster(state, action, character):
 def dist_to_exit(state, action, character):
     """Feature value that is higher when closer to exit"""
     new_loc = post_action_location(state, action, character)
-    path = bfs(new_loc, state.exitcell)
+    path = bfs(state, new_loc, state.exitcell)
 
     # No path found
     if path is None:
@@ -62,11 +63,12 @@ def monster_threat(state, action, character):
     vec_to_exit = (state.exitcell[0] - new_x, state.exitcell[1] - new_y)
 
     max_threat = -1
-    for monster in state.monsters.values():
-        vec_to_monster = (monster.x - new_x, monster.y - new_y)
-        threat = dotp(vec_to_exit, vec_to_monster)
-        if threat > max_threat:
-            max_threat = threat
+    for monsterlist in state.monsters.values():
+        for monster in monsterlist:
+            vec_to_monster = (monster.x - new_x, monster.y - new_y)
+            threat = dotp(vec_to_exit, vec_to_monster)
+            if threat > max_threat:
+                max_threat = threat
 
     # Normalize for feature value
     return 0.5 * max_threat + 0.5
@@ -81,9 +83,13 @@ def bomb_danger_zone(state, action, character):
     new_x, new_y = post_action_location(state, action, character)
     in_explosion_radius = False
     ticking_bomb = False
-        
+    
+    # Get bomb from bombs dict
+    bomb = None
+    for b in state.bombs.values():
+        bomb = b
+
     # Check if a bomb is active
-    bomb = find_bomb(state)
     if bomb is not None:
         ticking_bomb = True
 
@@ -117,7 +123,7 @@ def bomb_danger_zone(state, action, character):
 def no_path(state, action, character):
     """Feature returns 1 if no exit path, 0 otherwise"""
     new_loc = post_action_location(state, action, character)
-    path = bfs(new_loc, state.exitcell)
+    path = bfs(state, new_loc, state.exitcell)
     if path is None:
         # No path
         return 1
@@ -133,7 +139,9 @@ def no_path(state, action, character):
 def bfs(state, start, goal):
     queue = collections.deque([[start]])
     seen = set([start])
+
     # perform bfs, leaving us with path to exit
+    exit_found = False
     while queue:
         path = queue.popleft()
         x, y = path[-1]
@@ -198,5 +206,6 @@ feature_functions = [
     dist_to_exit,
     dist_to_monster,
     monster_threat,
-    bomb_danger_zone
+    bomb_danger_zone,
+    no_path
 ]

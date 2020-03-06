@@ -28,7 +28,7 @@ class TrainingScenario(Game):
     # Overload go function to run
     # RETURN [Boolean]: whether or not the game was completed by the agent
     def go(self, wait=1, freeze_weights = True):
-        if wait is 0:
+        if wait == 0:
             def step():
                 pg.event.clear()
                 # print(featurefunctions.bomb_danger_zone(self.world, None))
@@ -42,10 +42,9 @@ class TrainingScenario(Game):
         while not self.done():
             cur_state = self.world
             (self.world, self.events) = self.world.next()
-            reward = self.reward_fn(self.world, self.events)
-            if (not freeze_weights):
-                self.agent.update_weights(reward, cur_state, self.world)
-            self.draw() # TODO uncomment after training
+            if not freeze_weights:
+                self.agent.update_weights(self.reward_fn, cur_state, self.world)
+            # self.draw() # TODO uncomment after training
             step()
             self.world.next_decisions()
             # evaluate if win

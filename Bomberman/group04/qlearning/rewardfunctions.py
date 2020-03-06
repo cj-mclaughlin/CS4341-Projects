@@ -36,7 +36,8 @@ def break_down(state, action, character):
     """Earn reward if agent places a bomb to destory a southern block"""
     if action == actions.Action.BOMB:
         for i in range(1, state.expl_range + 1):
-            if state.wall_at(character.x, character.y + i):
+            expl_x, expl_y = character.x, character.y + i
+            if valid_loc(state, expl_x, expl_y) and state.wall_at(expl_x, expl_y):
                 # Wall found in south direction
                 return R_BREAK_DOWN
     # No bomb or bomb misses southern wall
@@ -114,7 +115,8 @@ def reward(state, action, character):
 
     # Sum reward returned from every reward function
     total_reward += cost_of_living()
+    total_reward += break_down(state, action, character)
     total_reward += died(state, action, character)
-    total_reward += won(state, action, character)
+    total_reward += exited(state, action, character)
     
     return total_reward

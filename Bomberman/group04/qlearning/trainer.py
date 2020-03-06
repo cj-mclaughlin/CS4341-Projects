@@ -63,23 +63,29 @@ class Trainer():
         num_generations = 50
 
         # (for now) generate random pool of scenarios
-        scenarios = []
-        for i in range(num_episodes):
-            scenarios.append(self.random_scenario())
+        # scenarios = []
+        # for i in range(num_episodes):
+        #     scenarios.append(self.random_scenario())
         
         for generation_number in range(num_generations):
-            self.run_generation(num_episodes, scenarios) # running all scenarios from pool
-            self.write_progress(generation_number) 
+            # self.run_generation(num_episodes, scenarios) # running all scenarios from pool
+            self.run_generation(num_episodes)
+            self.write_progress(generation_number)
+    
 
-    def run_generation(self, num_episodes, pool_scenarios):
-        episodes = self.select_scenarios(num_episodes, pool_scenarios)
-        for episode in episodes:
-            # Reset agent position
-            self.agent.x, self.agent.y = 0, 0
-            episode.go(freeze_weights = False)
+    def run_generation(self, num_episodes):
+        for i in range(num_episodes):
+            testingscenario = self.random_scenario()
+            testingscenario.go(wait=1, freeze_weights=False)
+
+
+    # def run_generation(self, num_episodes, pool_scenarios):
+    #     episodes = self.select_scenarios(num_episodes, pool_scenarios)
+    #     for episode in episodes:
+    #         episode.go(freeze_weights = False)
             
-        # update epsilon value
-        self.agent.update_epsilon()
+    #     # update epsilon value
+    #     self.agent.update_epsilon()
         
         
     # select num_scenarios from pool_scenarios
@@ -96,23 +102,25 @@ class Trainer():
         maps = ["scenarios/map"+str(i)+".txt" for i in range(1,len(mapfiles)+1)]
         
         # Select Map
-        rand_map = maps[random.randint(1,len(mapfiles)+1)]
+        rand_map = maps[random.randrange(0,len(mapfiles))]
 
         # Game object
         g = TrainingScenario.fromfile(rand_map)
         
         # Random drop agent and a monster
         # Drop agent in first or second row
-        self.agent_x, self.agent_y = random.randint(0,TrainingScenario.world.width()), random.randint(0,1)
+        self.agent.x, self.agent.y = random.randrange(0, g.world.width()), random.randint(0,1)
 
         g.set_reward_function(self.reward)
         
-        max_x = max(g.width(), self.agent_x+5)
-        monster_x, monster_y = random.randint(0, g.width()), random.randint(self.agent_y+5, self.agent_y+6)
+        max_x = max(g.world.width(), self.agent.x+5)
+        monster_x, monster_y = random.randrange(0, g.world.width()), random.randint(self.agent.y+5, self.agent.y+6)
 
         # TODO think if we should include stupid monsters
         g.add_monster(SelfPreservingMonster("selfpreserving", "S", monster_x, monster_y, 2))
-        
+
+        g.set_agent(self.agent)
+
         return g
             
     
@@ -126,13 +134,19 @@ class Trainer():
         # write winrate to file
         #winrate = self.evaluate_winrate()
         with open(self.weightsfile, 'a+') as f:
-            if (not file_exists):
-                f.write("Generation # | Epsilon | Weights [ TODO ] | Winrate\n")
-            # TODO write agent generation and winrate etc ...
+            if not file_exists:
+                f.write("Generation ## | Epsilon | Exit___ Monster Threat_ Bomb___ No_path | Winrate\n\n")
+            
+            f.write("Generation {0:2d} | {1:.5f} | {2:7.1f} {3:7.1f} {4:7.1f} {5:7.1f} {6:7.1f} |\n\n".format(
+                generation_number,
+                self.agent.epsilon,
+                *self.agent.weights))
 
-    # Get the reward value for a given state and new events
+
+    # Get the reward value for a given state and action
     # PARAM[SensedWorld] state: the current state of the map
-    # PARAM[list(Event)] events: the events that transpired in the last step
+    # PARAM[Action] action: the action to evaluate
+    # PARAM[MovableEntity] character: the bomberman character this is evaluating for
     def reward(self, state, events):
         return rewardfunctions.reward(state, events, self.agent)
     
@@ -150,7 +164,7 @@ class TrainingGame(Game):
     # Overload go function to run
     # RETURN [Boolean]: whether or not the game was completed by the agent
     def go(self, wait=1, freeze_weights = True):
-        if wait is 0:
+        if wait == 0:
             def step():
                 pg.event.clear()
                 # print(featurefunctions.bomb_danger_zone(self.world, None))

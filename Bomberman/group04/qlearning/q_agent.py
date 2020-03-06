@@ -10,6 +10,7 @@ from game import Game
 import pygame
 import random
 
+import rewardfunctions
 
 # Note: signiture for CharacterEntity constructor: def __init__(self, name, avatar, x, y):
 
@@ -32,6 +33,8 @@ class QAgent(CharacterEntity):
         return move_util
     
     def valid_action(self, world, action):
+        if action is None:
+            return False
         direction = ActionDirections[action]
         if (self.x + direction[0] < 0 or self.y + direction[1] < 0):
             return False
@@ -43,7 +46,7 @@ class QAgent(CharacterEntity):
     def determine_best_action(self, state):
         """Find the best available move"""
         bomb = False
-        best_action = None
+        best_action = Action.STILL
         best_action_val = -math.inf
         for a in Action:
             # print("{} value {}".format(a, self.evaluate_move(state, a)))
@@ -83,8 +86,9 @@ class ExplorationAgent(QAgent):
     # PARAM[SensedWorld] next_state: the state of the world after action
     # PARAM[Action] next_action: the best action after entering next state (argmax)
     # PARAM[float] discount: discounting rate
-    def update_weights(self, reward, current_state, next_state, discount=0.9):
+    def update_weights(self, reward_fn, current_state, next_state, discount=0.9):
         current_action = self.last_action
+        reward = rewardfunctions.reward(current_state, current_action, self)
         current_utility = self.evaluate_move(current_state, current_action)
         next_action = self.determine_best_action(next_state)
         # delta = r + v(max(a')(Q(s',a'))) - Q(s,a)

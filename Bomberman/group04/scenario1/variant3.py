@@ -22,7 +22,7 @@ g.add_monster(SelfPreservingMonster("selfpreserving", # name
 ))
 
 # TODO finalize weights
-agent = q_agent.ExploitationAgent("me", "C", 0, 0)
+agent = q_agent.Player("me", "C", 0, 0)
 # final_weights = [...]
 # agent.set_weights(final_weights)
 g.add_character(agent)

@@ -158,7 +158,7 @@ def bfs(state, start, goal):
                 seen.add((x2, y2))
 
     if exit_found:
-        return path
+        return path[1][0] - start[0], path[1][1] - start[1]
     
     # No path
     return None

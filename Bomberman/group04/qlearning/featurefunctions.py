@@ -70,6 +70,44 @@ def monster_threat(state, action, character):
 
     # Normalize for feature value
     return 0.5 * max_threat + 0.5
+    
+
+# Evaluates danger zone of ticking bombs and active explosions
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+def bomb_danger_zone(state, action, character):
+    """Checks if action places character in explosion range"""
+    new_x, new_y = post_action_location(state, action, character)
+    in_explosion_radius = False
+    ticking_bomb = False
+        
+    # Check if a bomb is active
+    bomb = find_bomb(state)
+    if bomb is not None:
+        ticking_bomb = True
+
+
+    # checks for active bomb
+    if (ticking_bomb):
+        # check if we are in the x component of explosion
+        if (abs(new_x - bomb.x) <= 4 and new_y == bomb.y):
+            in_explosion_radius = True
+        # y component
+        elif (abs(new_y - bomb.y) <= 4 and new_x == bomb.x):
+            in_explosion_radius = True
+    
+    # checks for active explosions
+    if (state.explosion_at(new_x, new_y)):
+        # really bad
+        return 1
+    
+    if (in_explosion_radius):
+        # more bad depending on how close bomb is to going off
+        return 1 / (bomb.timer + 1)
+    
+    # no active bombs or explosion on new tile
+    return 0
 
 
 # BFS for optimal path
@@ -119,6 +157,19 @@ def post_action_location(state, action, character):
     return new_x, new_y
 
 
+# Check that the position is a valid move
+# PARAM[SensedWorld] state: the state of the current board
+# PARAM[int] x: the value of the x coordinate of the position to check
+# PARAM[int] y: the value of the y coordinate of the position to check
+# RETURN[boolean] : whether the position is valid
+def valid_location(state, x, y):
+    """Check if we are going out of bounds or into a wall"""
+    # Check that there is no wall in the new position
+    if 0 <= x < state.width() and 0 <= y < state.height() and not state.wall_at(x, y):
+        return True
+    return False
+
+
 # Compute the dot product of two vectors
 # PARAM[tuple(int...)] v1: the first vector
 # PARAM[tuple(int...)] v2: the second vector
@@ -129,6 +180,7 @@ def dotp(v1, v2):
 
 feature_functions = [
     dist_to_exit,
-    dist_to_monster
-    monster_threat
+    dist_to_monster,
+    monster_threat,
+    bomb_danger_zone
 ]

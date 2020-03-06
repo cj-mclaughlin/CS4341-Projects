@@ -206,6 +206,9 @@ def dotp(v1, v2):
     mag1 = math.sqrt(mag1)
     mag2 = math.sqrt(mag2)
 
+    if mag1 == 0 or mag2 == 0:
+        return 0
+
     return sum([(v1[i] / mag1) * (v2[i] / mag2) for i in range(len(v1))])
 
 

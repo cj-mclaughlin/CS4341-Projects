@@ -20,6 +20,9 @@ class QAgent(CharacterEntity):
         self.weights = [1 * len(self.feature_functions)] # TODO fix initialization
         super().__init__(name, avatar, x, y)
 
+    def set_weights(self, weights):
+        self.weights = weights
+
     def evaluate_move(self, state, action):
         move_util = 0
         #print("Evaluating action {}".format(action))
@@ -52,9 +55,6 @@ class QAgent(CharacterEntity):
 class ExploitationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)
-        
-    def set_weights(self, weights):
-        self.weights = weights
     
     def do(self, world):
         """Find and perform best available move"""
@@ -75,7 +75,7 @@ class ExplorationAgent(QAgent):
         self.epsilon = 0.9
         self.epsilon_decrement = 0.001 # TODO what this should be
         self.last_action = Action.STILL
-       
+            
     # Update weights after taking a step in world
     # PARAM[float] reward: reward recieved for last action in world
     # PARAM[SensedWorld] current_state: the state of the world

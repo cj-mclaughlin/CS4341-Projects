@@ -10,7 +10,7 @@ from featurefunctions import post_action_location
 # Reward constant values
 R_LIVING = 0
 R_EXITED = 10
-R_KILLED = -50
+R_DIED = -50
 
 # Checking tiles adjacent
 DX = [0, 1, 1, 1, 0, -1, -1, -1]
@@ -20,7 +20,8 @@ DY = [-1, -1, 0, 1, 1, 1, 0, -1]
 # Reward component functions
 
 # Gives a negative reward no matter what has happened (cost of living)
-def cost_of_living(state, action, character):
+# RETURN[int] : a small negative amount to urge the agent onward
+def cost_of_living():
     """Return a constant, negative reward that represents the cost of living"""
     return R_LIVING
 
@@ -29,6 +30,7 @@ def cost_of_living(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[int] : very negative reward if the agent will die with this action, 0 otherwise
 def died(state, action, character):
     """Earn negative reward if agent is killed"""
     new_x, new_y = post_action_location(state, action, character)
@@ -55,16 +57,17 @@ def died(state, action, character):
 
 
 # Gives a very positive reward if the agent has won
-# PARAM[list(Event)] events: the events that transpired in the last step
-def won(events):
-    """Earn positive reward if agent has won the game"""
-    # Iterate over events to check for win
-    for ev in events:
-        if ev.tpe == Event.CHARACTER_FOUND_EXIT:
-            # Reward for winning
-            return R_WON
+# PARAM[SensedWorld] state: the current state of the map
+# PARAM[Action] action: the action to evaluate
+# PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[int] : positive reward for reaching exit, 0 otherwise
+def exited(state, action, character):
+    """Earn positive reward if agent has reached the exit"""
+    new_loc = post_action_location(state, action, character)
+    if state.exitcell == new_loc:
+        return R_EXITED
     
-    # Reward for not winning
+    # Reward for not exiting
     return 0
 
 
@@ -85,21 +88,16 @@ def valid_loc(state, x, y):
 
 # Get the reward value for a given state and events
 # PARAM[SensedWorld] state: the current state of the map
-# PARAM[list(Event)] events: the events that transpired in the last step
+# PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def reward(state, events, character):
+# RETURN[int] : the total reward based on various reward components
+def reward(state, action, character):
     """Earn reward based on sum of every reward component"""
     total_reward = 0
 
     # Sum reward returned from every reward function
     total_reward += cost_of_living()
-    total_reward += using_bomb(state)
-    #total_reward += hit_walls(events)
-    #total_reward += hit_monsters(events)
-    total_reward += can_hit_walls(state)
-    total_reward += can_hit_monsters(state)
-    total_reward += dist_to_exit(state, character)
-    total_reward += died(state, events)
-    total_reward += won(events)
+    total_reward += died(state, action, character)
+    total_reward += won(state, action, character)
     
     return total_reward

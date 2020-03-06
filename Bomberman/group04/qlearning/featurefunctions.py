@@ -127,7 +127,8 @@ def dotp(v1, v2):
     return sum([v1[i] * v2[i] for i in range(len(v1))])
 
 
-
-# TODO export function
 feature_functions = [
+    dist_to_exit,
+    dist_to_monster
+    monster_threat
 ]

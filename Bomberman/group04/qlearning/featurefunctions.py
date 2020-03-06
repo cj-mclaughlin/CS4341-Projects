@@ -199,7 +199,14 @@ def valid_location(state, x, y):
 # PARAM[tuple(int...)] v2: the second vector
 def dotp(v1, v2):
     """Return the dot product of the two vectors"""
-    return sum([v1[i] * v2[i] for i in range(len(v1))])
+    mag1, mag2 = 0, 0
+    for i in range(len(v1)):
+        mag1 += v1[i] * v1[i]
+        mag2 += v2[i] * v2[i]
+    mag1 = math.sqrt(mag1)
+    mag2 = math.sqrt(mag2)
+
+    return sum([(v1[i] / mag1) * (v2[i] / mag2) for i in range(len(v1))])
 
 
 feature_functions = [

@@ -32,4 +32,4 @@ agent = q_agent.Player("me", "C", 0, 0)
 g.add_character(agent)
 
 # Run!
-g.go()
+g.go(3)

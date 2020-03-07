@@ -28,7 +28,7 @@ agent = q_agent.Player("me", # name
 )
 g.add_character(agent)
 final_weights = [409.5, -58.7, 18.9, -40.4, 50.0]
-g.add_character(agent)
+
 
 # Run!
-g.go()
+g.go(300)

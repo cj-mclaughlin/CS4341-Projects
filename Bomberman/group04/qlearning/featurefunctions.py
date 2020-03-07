@@ -89,7 +89,7 @@ def monster_threat(state, action, character):
             
             #threat = dotp(exit_vec, monster_vec) # old way
             threat = np.dot(normal_exit_vec, normal_monster_vec)
-            threat = threat ** 5
+            threat = threat ** 3
             if threat > max_threat:
                 max_threat = threat
     

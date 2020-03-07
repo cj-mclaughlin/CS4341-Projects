@@ -5,6 +5,7 @@ from qlearning import q_agent
 if __name__ == "__main__":
     agent = q_agent.ExploitationAgent("me", "C", 0, 0)
     agent.set_weights([558.8, -306.9, -11.3, -49.8, 3.0])
+    # agent.set_weights([1, -5, -3, -5, 3])
     game = Trainer(agent).random_scenario()
     game.set_agent(agent)
     game.add_agent()

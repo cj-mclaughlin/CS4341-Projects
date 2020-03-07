@@ -6,6 +6,7 @@ file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
 import actions
+from queue import PriorityQueue
 
 import numpy as np
 
@@ -25,8 +26,8 @@ def dist_to_monster(state, action, character):
     # Iterate over all monsters in world
     for monsterlist in state.monsters.values():
         for monster in monsterlist:
-            path = bfs(state, new_loc, (monster.x, monster.y))
-            if not path is None and len(path) < shortest_len:
+            path = A_star(state, new_loc, (monster.x, monster.y))
+            if path is not None and len(path) < shortest_len:
                 shortest_path = path
                 shortest_len = len(path)
 
@@ -45,7 +46,7 @@ def dist_to_monster(state, action, character):
 def dist_to_exit(state, action, character):
     """Feature value that is higher when closer to exit"""
     new_loc = post_action_location(state, action, character)
-    path = bfs(state, new_loc, state.exitcell)
+    path = A_star(state, new_loc, state.exitcell)
 
     # No path found
     if path is None:
@@ -148,7 +149,7 @@ def bomb_danger_zone(state, action, character):
 def no_path_bomb(state, action, character):
     """Feature returns 1 if exit path blocked, 0 if available or about to be freed by bomb"""
     new_loc = post_action_location(state, action, character)
-    path = bfs(state, new_loc, state.exitcell)
+    path = A_star(state, new_loc, state.exitcell)
     if path is None:
         # No path. Can bomb make path?
         if action == actions.Action.BOMB:
@@ -196,6 +197,50 @@ def bfs(state, start, goal):
     # No path
     return None
 
+
+def A_star(state, start, goal):
+    def h(state, x, y):
+        return 11 if(state.wall_at(x,y)) else 1
+    
+    # @dataclass(order = True)
+    # class prioritized_item:
+    #     priority: int
+    #     item: Any=field(compare=False)
+
+    frontier = PriorityQueue()
+    frontier.put(start, 0)
+    came_from = {}
+    cost_so_far = {}
+    came_from[start] = None
+    cost_so_far[start] = 0
+    
+    while(not frontier.empty()):
+        current = frontier.get()
+        x,y = current[0], current[1]
+        if(current == goal):
+            break
+
+        # Add neighbors to queue
+        for x2, y2 in ((x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1, y+1), (x+1, y-1), (x-1, y-1), (x-1, y+1)):
+            
+            #Check that the value is a valid move
+            if 0 <= x2 < state.width() and 0 <= y2 < state.height():
+                new_cost = cost_so_far[(x,y)] + 1 + h(state, x2, y2)
+
+                if((x2,y2) not in cost_so_far or new_cost < cost_so_far[(x2,y2)]):
+                    cost_so_far[(x2,y2)] = new_cost
+                    priority = new_cost
+                    frontier.put((x2,y2),priority)
+                    came_from[(x2,y2)] = current
+
+    #Loop back and build the path
+    cur_coor = current
+    path = [cur_coor]
+    #print(f'Start: {start} Cur: {cur_coor}')
+    while(cur_coor != None):
+        cur_coor = came_from[cur_coor]
+        path.insert(0, cur_coor)
+    return path
 
 # Returns the locaton of character after taking action in state
 # PARAM[SensedWorld] state: the current state of the map

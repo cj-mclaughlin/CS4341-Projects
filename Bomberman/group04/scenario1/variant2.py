@@ -26,11 +26,10 @@ g.add_monster(StupidMonster("stupid", # name
 ))
 
 # TODO finalize weights
-agent = q_agent.Player("me", # name
-                              "C",  # avatar
-                              0, 0  # position
-)
+agent = q_agent.Player("me", "C", 0, 0)
 g.add_character(agent)
+# final_weights = [29.7, -103.8, 55.1, -50.9, 3.0]
+# agent.set_weights(final_weights)
 
 # Run!
-g.go(50)
+g.go(100)

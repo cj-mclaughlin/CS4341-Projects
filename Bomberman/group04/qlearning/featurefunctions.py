@@ -26,7 +26,7 @@ def dist_to_monster(state, action, character):
     for monsterlist in state.monsters.values():
         for monster in monsterlist:
             path = bfs(state, new_loc, (monster.x, monster.y))
-            if path is not None and len(path) < shortest_len:
+            if not path is None and len(path) < shortest_len:
                 shortest_path = path
                 shortest_len = len(path)
 
@@ -35,7 +35,7 @@ def dist_to_monster(state, action, character):
         return 0
     
     # Feature is inversely proportional to distance
-    return 1 / len(path)
+    return 1 / len(shortest_path)
 
 
 # Feature based on distance to exit
@@ -133,7 +133,9 @@ def bomb_danger_zone(state, action, character):
     
     if (in_explosion_radius):
         # more bad depending on how close bomb is to going off
-        return 1 / (bomb.timer + 1)
+        if bomb.timer <= 1:
+            return 1
+        return 0
     
     # no active bombs or explosion on new tile
     return 0
@@ -152,7 +154,6 @@ def no_path_bomb(state, action, character):
         if action == actions.Action.BOMB:
             for i in range(1, state.expl_range + 1):
                 expl_x, expl_y = character.x, character.y + i
-                print(state.wall_at(expl_x, expl_y))
                 if 0 <= expl_x < state.width() and 0 <= expl_y < state.height() and state.wall_at(expl_x, expl_y):
                     # Wall found in south direction
                     return 1

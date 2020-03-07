@@ -22,7 +22,7 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        self.weights = [1, -5, -3, -10, 1] # TODO fix initialization
+        self.weights = [1, -10, -3, -8, 1] # TODO fix initialization
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -53,15 +53,16 @@ class QAgent(CharacterEntity):
         best_action = Action.STILL
         best_action_val = -math.inf
         for a in Action:
-            #print("{} value {}".format(a, self.evaluate_move(state, a)))
+            print("{} value {}".format(a, self.evaluate_move(state, a)))
             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
                 best_action = a
                 best_action_val = self.evaluate_move(state, a)
+        print(best_action, self.x, self.y)
         return best_action
 
 class Player(QAgent):
     
-    def in_bomb_zone(self, state):
+    def in_bomb_zone(self, state, x, y):
         bomb = None
         ticking_bomb, in_explosion_radius = False, False
         for b in state.bombs.values():
@@ -72,25 +73,25 @@ class Player(QAgent):
             ticking_bomb = True
 
         # checks for active bomb
-        if (ticking_bomb):
+        if (ticking_bomb and bomb.timer <= 1):
             # check if we are in the x component of explosion
-            if (abs(self.x - bomb.x) <= 4 and self.y == bomb.y):
+            if (abs(x - bomb.x) <= 4 and y == bomb.y):
                 in_explosion_radius = True
             # y component
-            elif (abs(self.y - bomb.y) <= 4 and self.x == bomb.x):
+            elif (abs(y - bomb.y) <= 4 and x == bomb.x):
                 in_explosion_radius = True
         
-        if (in_explosion_radius or state.explosion_at(self.x, self.y)):
+        if (in_explosion_radius or state.explosion_at(x, y)):
             return True
         
         else: 
             return False
     
     # checks if we are in danger range of bomb or monster
-    def check_safe(self, state, threshold = 5):
+    def check_safe(self, state, threshold = 6):
         best_path_vec = self.find_best_path_vector(state)
         closest_monster_dist = self.dist_to_nearest_monster(state, best_path_vec)
-        return not(closest_monster_dist < threshold or self.in_bomb_zone(state)), best_path_vec
+        return not(closest_monster_dist <= threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search
@@ -108,11 +109,9 @@ class Player(QAgent):
                 # first make sure we arent running into a dangerous bomb/explosion
                 bomb_danger = False
                 next_x, next_y = self.x + best_path_vec[0], self.y + best_path_vec[1]
-                bomb = world.bomb_at(next_x, next_y)
-                if bomb is not None: # dont walk over bombs that are gonna explode soon
-                    if bomb.timer <= 3:
-                        bomb_danger = True
-                if world.explosion_at(next_x, next_y):
+                
+                # dont walk over bombs that are gonna explode soon
+                if self.in_bomb_zone(world, next_x, next_y):
                     bomb_danger = True
                 if (bomb_danger): # override moving to death
                     self.move(0,0)
@@ -123,6 +122,7 @@ class Player(QAgent):
             best_action = self.determine_best_action(world)
             if best_action == Action.BOMB:
                 self.place_bomb()
+                self.move(0, 0)
             else:
                 direction = ActionDirections[best_action]
                 self.move(direction[0], direction[1])
@@ -263,6 +263,7 @@ class ExploitationAgent(QAgent):
         best_action = self.determine_best_action(world)
         if best_action == Action.BOMB:
             self.place_bomb()
+            self.move(0, 0)
         else:
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])
@@ -310,6 +311,7 @@ class ExplorationAgent(QAgent):
         
         if best_action == Action.BOMB:
             self.place_bomb()
+            self.move(0, 0)
         else:
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])

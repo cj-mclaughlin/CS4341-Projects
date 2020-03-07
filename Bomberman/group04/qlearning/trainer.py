@@ -25,7 +25,7 @@ class Trainer():
     # Evaluation of agent against sub scenarios
     # PARAM[filename] training_pickle: serialized copy of list of scenarios we want to train against
     def evaluate_winrate(self):
-        num_scenarios = 10
+        num_scenarios = 6
         num_runs_per_scenario = 5
         
         old_epsilon = self.agent.epsilon
@@ -83,7 +83,7 @@ class Trainer():
     # Train the agent that is  
     def train(self):
         # select scenarios
-        num_episodes = 30 # TODO make this 1? idk
+        num_episodes = 10 # TODO make this 1? idk
         num_generations = 30
 
         # (for now) generate random pool of scenarios
@@ -129,7 +129,7 @@ class Trainer():
         maps = ["scenarios/map"+str(i)+".txt" for i in range(1,len(mapfiles)+1)]
         
         # Select Map
-        rand_map = maps[random.randrange(0,len(mapfiles))]
+        rand_map = maps[random.randrange(0,6)]
 
         # Game object
         g = TrainingScenario.fromfile(rand_map)

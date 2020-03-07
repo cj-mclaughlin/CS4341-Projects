@@ -62,32 +62,38 @@ def dist_to_exit(state, action, character):
 def monster_threat(state, action, character):
     """Feature value that is higher when monster poses more of a threat to the path"""
     new_x, new_y = post_action_location(state, action, character)
-    vec_to_exit = (state.exitcell[0] - new_x, state.exitcell[1] - new_y) # old way
+    exit_vec = [state.exitcell[0] - new_x, state.exitcell[1] - new_y] # old way
     
-    # try normalizing before
-    np_vec_to_exit = np.asarray(vec_to_exit)
-    exit_vec_len = np.linalg.norm(np_vec_to_exit)
+    normal_exit_vec, normal_monster_vec = [], []
     
-    norm_vec_to_exit = np_vec_to_exit / exit_vec_len
+    # try normalizing vector before
+    exit_vec_length = math.sqrt(exit_vec[0]**2 + exit_vec[1]**2)
+    if exit_vec_length == 0:
+        normal_exit_vec = [0,0]
+    else:
+        normal_exit_vec = [vector/exit_vec_length for vector in exit_vec]
+    #print(normal_exit_vec)
 
     max_threat = -1
     for monsterlist in state.monsters.values():
         for monster in monsterlist:
-            vec_to_monster = (monster.x - new_x, monster.y - new_y) # old way
+            monster_vec = [monster.x - new_x, monster.y - new_y] # old way
             
-            # try normalizing before
-            np_vec_to_monster = np.asarray(vec_to_monster)
-            monster_vec_len = np.linalg.norm(np_vec_to_monster)
+            # try normalizing vector before
+            monster_vec_length = math.sqrt(monster_vec[0]**2 + monster_vec[1]**2)
+            if monster_vec_length == 0:
+                normal_monster_vec = [0,0]
+            else:
+                normal_monster_vec = [vector/monster_vec_length for vector in monster_vec]
+            #print(normal_monster_vec)
             
-            norm_vec_to_monster = np_vec_to_monster / monster_vec_len
-            
-            #threat = dotp(vec_to_exit, vec_to_monster) # old way
-            threat = dotp(norm_vec_to_exit, norm_vec_to_monster)
+            #threat = dotp(exit_vec, monster_vec) # old way
+            threat = np.dot(normal_exit_vec, normal_monster_vec)
             if threat > max_threat:
                 max_threat = threat
-
+    
     # Normalize for feature value
-    return 0.5 * max_threat + 0.5
+    return (0.5 * max_threat) + 0.5
     
 
 # Evaluates danger zone of ticking bombs and active explosions
@@ -174,7 +180,9 @@ def bfs(state, start, goal):
                 seen.add((x2, y2))
 
     if exit_found:
-        return path[1][0] - start[0], path[1][1] - start[1]
+        # TODO what should this be
+        return path
+        #return path[1][0] - start[0], path[1][1] - start[1]
     
     # No path
     return None

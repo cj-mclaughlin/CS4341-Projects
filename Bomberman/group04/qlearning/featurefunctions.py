@@ -143,13 +143,20 @@ def bomb_danger_zone(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
-def no_path(state, action, character):
-    """Feature returns 1 if no exit path, 0 otherwise"""
+def no_path_bomb(state, action, character):
+    """Feature returns 1 if exit path blocked, 0 if available or about to be freed by bomb"""
     new_loc = post_action_location(state, action, character)
     path = bfs(state, new_loc, state.exitcell)
     if path is None:
-        # No path
-        return 1
+        # No path. Can bomb make path?
+        if action == actions.Action.BOMB:
+            for i in range(1, state.expl_range + 1):
+                expl_x, expl_y = character.x, character.y + i
+                print(state.wall_at(expl_x, expl_y))
+                if 0 <= expl_x < state.width() and 0 <= expl_y < state.height() and state.wall_at(expl_x, expl_y):
+                    # Wall found in south direction
+                    return 1
+        return 0
     
     # Path found
     return 0
@@ -242,5 +249,5 @@ feature_functions = [
     dist_to_monster,
     monster_threat,
     bomb_danger_zone,
-    no_path
+    no_path_bomb
 ]

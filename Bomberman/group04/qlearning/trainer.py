@@ -25,8 +25,8 @@ class Trainer():
     # Evaluation of agent against sub scenarios
     # PARAM[filename] training_pickle: serialized copy of list of scenarios we want to train against
     def evaluate_winrate(self):
-        num_runs_per_scenario = 5
         num_scenarios = 10
+        num_runs_per_scenario = 5
         
         old_epsilon = self.agent.epsilon
 
@@ -38,8 +38,25 @@ class Trainer():
         # TODO potentially serialize scenarios
         
         scenarios = []
-        for i in range(num_scenarios):
-            scenarios.append(self.random_scenario())   
+        for i in range(1, num_scenarios+ 1):
+            # Create scenario
+            map_file = "scenarios/map"+str(i)+".txt"
+            g = TrainingScenario.fromfile(map_file)
+            scenarios.append(g)
+            
+            # Random drop agent and a monster
+            # Drop agent in first or second row
+            self.agent.x, self.agent.y = random.randrange(0, g.world.width()), random.randint(0,1)
+
+            g.set_reward_function(self.reward)
+            
+            max_x = max(g.world.width(), self.agent.x+5)
+            monster_x, monster_y = random.randrange(0, g.world.width()), random.randint(self.agent.y+5, self.agent.y+6)
+
+            # TODO think if we should include stupid monsters
+            g.add_monster(SelfPreservingMonster("selfpreserving", "S", monster_x, monster_y, 2))
+
+            g.set_agent(self.agent)
         
         scenario_winrate = {i: 0 for i in range(len(scenarios))}
 
@@ -48,6 +65,8 @@ class Trainer():
             num_wins = 0
             for j in range(num_runs_per_scenario):
                 scenarios[i].add_agent() # add its agent to the game
+                # Drop agent in first or second row
+                self.agent.x, self.agent.y = random.randrange(0, g.world.width()), random.randint(0,1)
                 won = scenarios[i].go(freeze_weights = True)
                 if(won):
                     num_wins += 1
@@ -64,8 +83,8 @@ class Trainer():
     # Train the agent that is  
     def train(self):
         # select scenarios
-        num_episodes = 12 # TODO make this 1? idk
-        num_generations = 50
+        num_episodes = 30 # TODO make this 1? idk
+        num_generations = 30
 
         # (for now) generate random pool of scenarios
         # scenarios = []

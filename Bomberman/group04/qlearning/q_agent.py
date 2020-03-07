@@ -87,7 +87,7 @@ class Player(QAgent):
             return False
     
     # checks if we are in danger range of bomb or monster
-    def is_safe(self, state, threshold = 5):
+    def check_safe(self, state, threshold = 5):
         best_path_vec = self.find_best_path_vector(state)
         closest_monster_dist = self.dist_to_nearest_monster(state, best_path_vec)
         return not(closest_monster_dist < threshold or self.in_bomb_zone(state)), best_path_vec
@@ -97,7 +97,7 @@ class Player(QAgent):
         return state.wall_at(best_next_move_vec[0], best_next_move_vec[1])
 
     def do(self, world):
-        is_safe, best_path_vec = self.is_safe(world)
+        is_safe, best_path_vec = self.check_safe(world)
         if(is_safe):
             print("I think im safe")
             print(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1])))
@@ -136,7 +136,7 @@ class Player(QAgent):
     def dist_to_nearest_monster(self, state, movement_vec):
         """Check if we are getting closer/further from a monster"""
         search_radius = 5
-        new_x, new_y = movement_vec
+        new_x, new_y = self.x + movement_vec[0], self.y + movement_vec[1]
         monsters = self.find_monsters(state)
         
         if monsters is None:

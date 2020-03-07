@@ -22,7 +22,7 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        self.weights = [1 * len(self.feature_functions)] # TODO fix initialization
+        self.weights = [1, -5, -3, -10, 1] # TODO fix initialization
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -61,8 +61,36 @@ class QAgent(CharacterEntity):
 
 class Player(QAgent):
     
+    def in_bomb_zone(self, state):
+        bomb = None
+        ticking_bomb, in_explosion_radius = False, False
+        for b in state.bombs.values():
+            bomb = b
+
+        # Check if a bomb is active
+        if bomb is not None:
+            ticking_bomb = True
+
+        # checks for active bomb
+        if (ticking_bomb):
+            # check if we are in the x component of explosion
+            if (abs(self.x - bomb.x) <= 4 and self.y == bomb.y):
+                in_explosion_radius = True
+            # y component
+            elif (abs(self.y - bomb.y) <= 4 and self.x == bomb.x):
+                in_explosion_radius = True
+        
+        if (in_explosion_radius or state.explosion_at(self.x, self.y)):
+            return True
+        
+        else: 
+            return False
+    
+    # checks if we are in danger range of bomb or monster
     def is_safe(self, state, threshold = 5):
         best_path_vec = self.find_best_path_vector(state)
+        if (self.in_bomb_zone(state)):
+            return False, best_path_vec
         closest_monster_dist = self.dist_to_nearest_monster(state, best_path_vec) 
         return closest_monster_dist > threshold, best_path_vec
 
@@ -73,13 +101,27 @@ class Player(QAgent):
     def do(self, world):
         is_safe, best_path_vec = self.is_safe(world)
         if(is_safe):
+            print("I think im safe")
             print(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1])))
             if(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1]))):
                 self.place_bomb()
             else:
-                #Make move to best postition based on best path
-                self.move(best_path_vec[0], best_path_vec[1])
+                # Make move to best postition based on best path
+                # first make sure we arent running into a dangerous bomb/explosion
+                bomb_danger = False
+                next_x, next_y = self.x + best_path_vec[0], self.y + best_path_vec[1]
+                bomb = world.bomb_at(next_x, next_y)
+                if bomb is not None: # dont walk over bombs that are gonna explode soon
+                    if bomb.timer <= 3:
+                        bomb_danger = True
+                if world.explosion_at(next_x, next_y):
+                    bomb_danger = True
+                if (bomb_danger): # override moving to death
+                    self.move(0,0)
+                else:
+                    self.move(best_path_vec[0], best_path_vec[1])
         else:
+            print("Im in danger")
             best_action = self.determine_best_action(world)
             if best_action == Action.BOMB:
                 self.place_bomb()

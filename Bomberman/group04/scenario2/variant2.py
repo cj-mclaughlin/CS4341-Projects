@@ -33,4 +33,4 @@ g.add_character(agent("me", # name
 ))
 
 # Run!
-g.go(20)
+g.go(200)

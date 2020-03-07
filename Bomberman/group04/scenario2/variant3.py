@@ -22,11 +22,13 @@ g.add_monster(SelfPreservingMonster("selfpreserving", # name
 ))
 
 # TODO finalize weights
-agent = q_agent.Player
-g.add_character(agent("me", # name
-                              "C",  # avatar
-                              0, 0  # position
-))
+
+agent = q_agent.Player("me", "C", 0, 0)
+final_weights = [409.5, -58.7, 18.9, -41.4, 5.0]
+agent.set_weights(final_weights)
+# final_weights = [...]
+# agent.set_weights(final_weights)
+g.add_character(agent)
 
 # Run!
-g.go()
+g.go(200)

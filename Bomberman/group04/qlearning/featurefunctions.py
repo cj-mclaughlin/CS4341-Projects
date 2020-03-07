@@ -35,7 +35,7 @@ def dist_to_monster(state, action, character):
         return 0
     
     # Feature is inversely proportional to distance
-    return 1 / (len(path) + 1)
+    return 1 / len(path)
 
 
 # Feature based on distance to exit
@@ -52,7 +52,7 @@ def dist_to_exit(state, action, character):
         return 0
 
     # Feature is inversely proportional to distance
-    return 1 / (len(path) + 1)
+    return 1 / len(path)
 
 
 # Feature based on monsters blocking character path
@@ -89,6 +89,7 @@ def monster_threat(state, action, character):
             
             #threat = dotp(exit_vec, monster_vec) # old way
             threat = np.dot(normal_exit_vec, normal_monster_vec)
+            threat = threat ** 5
             if threat > max_threat:
                 max_threat = threat
     

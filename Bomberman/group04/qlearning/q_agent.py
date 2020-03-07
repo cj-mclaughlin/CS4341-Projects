@@ -89,10 +89,8 @@ class Player(QAgent):
     # checks if we are in danger range of bomb or monster
     def is_safe(self, state, threshold = 5):
         best_path_vec = self.find_best_path_vector(state)
-        if (self.in_bomb_zone(state)):
-            return False, best_path_vec
-        closest_monster_dist = self.dist_to_nearest_monster(state, best_path_vec) 
-        return closest_monster_dist > threshold, best_path_vec
+        closest_monster_dist = self.dist_to_nearest_monster(state, best_path_vec)
+        return not(closest_monster_dist < threshold or self.in_bomb_zone(state)), best_path_vec
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search

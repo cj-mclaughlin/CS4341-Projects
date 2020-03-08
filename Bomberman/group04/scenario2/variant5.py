@@ -33,4 +33,4 @@ g.add_character(agent)
 # agent.set_weights(final_weights)
 
 # Run!
-g.go(100)
+g.go(10)

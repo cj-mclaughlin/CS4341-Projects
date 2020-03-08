@@ -1,0 +1,14 @@
+#/bin/bash
+
+
+for map in 1 2
+do
+    for varnum in 1 2 3 4 5
+    do 
+        if [[ $(cd scenario$map && python3 variant$varnum.py | grep exit && cd .. | ls -A) ]]; then
+            echo "won map $map variant $varnum"
+        else
+            echo "lost map $map variant $varnum"
+        fi
+    done
+done

@@ -22,7 +22,8 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        self.weights = [102.3, -181.6, 1.9, -52.9, 3.0]  # <--Outstanding move (scenario1)
+        self.weights =  [152.6,-175.5,18.7,-50.2,17.9] # one from overnight training
+        #self.weights = [102.3, -181.6, 1.9, -52.9, 15.0]  # <--Outstanding move (scenario1)
         #self.weights = [73.0, -186.2, 2.0, -59.9, 15.8]  # <--Pretty good move (scenario2, all but v3)
         self.safe_threshold = 6
         super().__init__(name, avatar, x, y)

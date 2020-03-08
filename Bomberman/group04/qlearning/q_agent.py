@@ -31,6 +31,9 @@ class QAgent(CharacterEntity):
     def set_weights(self, weights):
         self.weights = weights
 
+    def set_safe_threshold(self, new_thresh):
+        self.safe_threshold = new_thresh
+
     def evaluate_move(self, state, action):
         move_util = 0
         #print("Evaluating action {}".format(action))

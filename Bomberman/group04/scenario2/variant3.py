@@ -3,6 +3,9 @@ import sys
 sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
 
+import os
+os.environ["SDL_VIDEODRIVER"] = "dummy"
+
 # Import necessary stuff
 import random
 from game import Game

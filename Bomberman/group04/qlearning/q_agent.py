@@ -24,6 +24,7 @@ class QAgent(CharacterEntity):
         self.feature_functions = fn.feature_functions
         self.weights = [102.3, -181.6, 1.9, -52.9, 3.0]  # <--Outstanding move (scenario1)
         #self.weights = [73.0, -186.2, 2.0, -59.9, 15.8]  # <--Pretty good move (scenario2, all but v3)
+        self.safe_threshold = 6
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -96,10 +97,10 @@ class Player(QAgent):
     
     # checks if we are in danger range of bomb or monster
 
-    def is_safe(self, state, threshold = 8):
+    def is_safe(self, state):
         best_path_vec = self.find_best_path_vector(state)
         closest_monster_dist = self.dist_to_nearest_monster(state)
-        return not(closest_monster_dist < threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
+        return not(closest_monster_dist < self.safe_threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search

@@ -153,7 +153,7 @@ class Player(QAgent):
         else:
             closest_monster_dist = math.inf
             for m in monsters:
-                monster_dist = self.manhattan_dist(new_x, new_y, m[0], m[1])
+                monster_dist = self.tile_dist(new_x, new_y, m[0], m[1])
                 if monster_dist < closest_monster_dist:
                     closest_monster_dist = monster_dist
             return closest_monster_dist
@@ -164,9 +164,9 @@ class Player(QAgent):
     # PARAM[int] x2: X value of the second point
     # PARAM[int] y2: Y value of the second point
     # RETURN[int] : the manhattan distance between two points
-    def manhattan_dist(self, x1, y1, x2, y2):
+    def tile_dist(self, x1, y1, x2, y2):
         """Manhattan distance"""
-        return abs(x1-x2) + abs(y1-y2)
+        return max(abs(x1-x2), abs(y1-y2))
 
     # Calculates the Euclidean distance between two points
     # PARAM[int] x1: X value of the first point

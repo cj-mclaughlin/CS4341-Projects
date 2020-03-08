@@ -39,10 +39,16 @@ class QAgent(CharacterEntity):
     def valid_action(self, world, action):
         if action is None:
             return False
+        # Check bomb
+        if action is Action.BOMB:
+            # If no bombs, action is good
+            return len(world.bombs) == 0
         direction = ActionDirections[action]
-        if (self.x + direction[0] < 0 or self.y + direction[1] < 0):
-            return False
-        return True
+        next_x = self.x + direction[0]
+        next_y = self.y + direction[1]
+        if 0 <= next_x < world.width() and 0 <= next_y < world.height() and not world.wall_at(next_x, next_y):
+            return True
+        return False
     
     # Determine the best action the agent can take
     # PARAM [World] state: the current state that the agent is in
@@ -57,7 +63,7 @@ class QAgent(CharacterEntity):
             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
                 best_action = a
                 best_action_val = self.evaluate_move(state, a)
-        #print(best_action, self.x, self.y)
+        print(best_action, self.x, self.y)
         return best_action
 
 class Player(QAgent):

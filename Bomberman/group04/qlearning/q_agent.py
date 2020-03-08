@@ -22,8 +22,8 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        #self.weights = [102.3, -181.6, 15.9, -52.9, 3.0]  # <--Outstanding move (scenario1)
-        self.weights = [102.3, -181.6, -15.9, -52.9, 3.0]  # <--Pretty good move (scenario2)
+        self.weights = [102.3, -181.6, 1.9, -52.9, 3.0]  # <--Outstanding move (scenario1)
+        #self.weights = [73.0, -186.2, 2.0, -59.9, 15.8]  # <--Pretty good move (scenario2, all but v3)
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -153,17 +153,17 @@ class Player(QAgent):
             closest_monster_dist = math.inf
             for m in monsters:
                 monster_dist = self.A_star(state, (self.x, self.y), m)[1]
-                print(monster_dist)
+                print(monster_dist, self.x, self.y, m)
                 if monster_dist < closest_monster_dist:
                     closest_monster_dist = monster_dist
             return closest_monster_dist
 
-    # Calculates the manhattan distance between two points
+    # Calculates the step distance between two points without walls
     # PARAM[int] x1: X value of the first point
     # PARAM[int] y1: Y value of the first point
     # PARAM[int] x2: X value of the second point
     # PARAM[int] y2: Y value of the second point
-    # RETURN[int] : the manhattan distance between two points
+    # RETURN[int] : the step distance between two points
     def tile_dist(self, x1, y1, x2, y2):
         """Step distance without walls"""
         return max(abs(x1-x2), abs(y1-y2))
@@ -221,8 +221,10 @@ class Player(QAgent):
         return None
     
     def A_star(self, state, start, goal):
-        def h(state, x, y):
-            return 11 if(state.wall_at(x,y)) else 1
+        def g(state, pos):
+            return 11 if(state.wall_at(*pos)) else 1
+        def h(state, pos):
+            return self.tile_dist(*pos, *goal)
         
         # @dataclass(order = True)
         # class prioritized_item:
@@ -230,37 +232,39 @@ class Player(QAgent):
         #     item: Any=field(compare=False)
 
         frontier = PriorityQueue()
-        frontier.put(start, 0)
+        frontier.put((0, start))
         came_from = {}
         cost_so_far = {}
         came_from[start] = None
         cost_so_far[start] = 0
         
-        while(not frontier.empty()):
-            current = frontier.get()
-            x,y = current[0], current[1]
+        while not frontier.empty():
+            priority_pair = frontier.get()
+            current = priority_pair[1]
+
             if(current == goal):
                 break
 
             # Add neighbors to queue
-            for x2, y2 in ((x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1, y+1), (x+1, y-1), (x-1, y-1), (x-1, y+1)):
+            x,y = current[0], current[1]
+            for next_pos in ((x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1, y+1), (x+1, y-1), (x-1, y-1), (x-1, y+1)):
                 
-                #Check that the value is a valid move
-                if 0 <= x2 < state.width() and 0 <= y2 < state.height():
-                    new_cost = cost_so_far[(x,y)] + 1 + h(state, x2, y2)
+                # Check that the position is valid
+                if 0 <= next_pos[0] < state.width() and 0 <= next_pos[1] < state.height():
+                    new_cost = cost_so_far[current] + g(state, next_pos)
 
-                    if((x2,y2) not in cost_so_far or new_cost < cost_so_far[(x2,y2)]):
-                        cost_so_far[(x2,y2)] = new_cost
-                        priority = new_cost
-                        frontier.put((x2,y2),priority)
-                        came_from[(x2,y2)] = current
+                    if next_pos not in cost_so_far or new_cost < cost_so_far[next_pos]:
+                        cost_so_far[next_pos] = new_cost
+                        priority = new_cost + h(state, next_pos)
+                        frontier.put((priority, next_pos))
+                        came_from[next_pos] = current
 
         #Loop back and find optimal move vector
         cur_coor = current
         while(came_from[cur_coor] != start):
             cur_coor = came_from[cur_coor]
-
-        return (cur_coor[0] - start[0], cur_coor[1] - start[1]), cost_so_far[goal] / 2
+        
+        return (cur_coor[0] - start[0], cur_coor[1] - start[1]), cost_so_far[goal]
 
 class ExploitationAgent(QAgent):
     def __init__(self, name, avatar, x, y):

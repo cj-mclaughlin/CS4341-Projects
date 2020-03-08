@@ -105,6 +105,7 @@ class Player(QAgent):
             print(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1])))
             if(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1]))):
                 self.place_bomb()
+                self.move(0, 0)
             else:
                 # Make move to best postition based on best path
                 # first make sure we arent running into a dangerous bomb/explosion
@@ -137,7 +138,7 @@ class Player(QAgent):
     def dist_to_nearest_monster(self, state, movement_vec):
         """Check if we are getting closer/further from a monster"""
         search_radius = 5
-        new_x, new_y = movement_vec
+        new_x, new_y = self.x + movement_vec[0], self.y + movement_vec[1]
         monsters = self.find_monsters(state)
         
         if monsters is None:

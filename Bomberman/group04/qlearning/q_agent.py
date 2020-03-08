@@ -103,27 +103,22 @@ class Player(QAgent):
 
     def is_safe(self, state):
         best_path_vec = self.find_best_path_vector(state)
-        closest_monster_dist = self.dist_to_nearest_monster(state)
-        if not self.monster_on_path(state, best_path_vec):
+        if not self.monster_on_path(state):
             return not self.in_bomb_zone(state, self.x, self.y), best_path_vec
+        closest_monster_dist = self.dist_to_nearest_monster(state)
         return not (closest_monster_dist < self.safe_threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
     
-    def monster_on_path(self, state, best_path_vec):
-        # If no path, we're probably in danger from behind anyway
-        path = fn.A_star(state, (self.x, self.y), state.exitcell)
-        if fn.wall_in_path(state, path):
-            return True
-
-        # Get action
-        action = Action.STILL
-        for a in ActionDirections:
-            if ActionDirections[a] == best_path_vec:
-                action = a
-                break
-
-        # Check threat
-        threat = fn.monster_threat(state, action, self)
-        return threat >= 0.5
+    def monster_on_path(self, state):
+        max_y = 0
+        for mlist in state.monsters.values():
+            for monster in mlist:
+                max_y = max(max_y, monster.y)
+        if self.y > max_y + 1:
+            # We are ahead, but if no path, we're in danger from behind anyway
+            exit_path = fn.A_star(state, (self.x, self.y), state.exitcell)
+            return fn.wall_in_path(state, exit_path)
+        # Monster is ahead
+        return True
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search
@@ -177,7 +172,6 @@ class Player(QAgent):
             closest_monster_dist = math.inf
             for m in monsters:
                 monster_dist = self.A_star(state, (self.x, self.y), m)[1]
-                print(monster_dist, self.x, self.y, m)
                 if monster_dist < closest_monster_dist:
                     closest_monster_dist = monster_dist
             return closest_monster_dist

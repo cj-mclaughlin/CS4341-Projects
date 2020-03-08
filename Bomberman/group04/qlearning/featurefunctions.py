@@ -225,7 +225,8 @@ def A_star(state, start, goal):
 
         # Add neighbors to queue
         x,y = current[0], current[1]
-        for next_pos in ((x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1, y+1), (x+1, y-1), (x-1, y-1), (x-1, y+1)):
+        for next_pos in ((x+1,y), (x-1,y), (x,y+1), (x,y-1)):
+        # for next_pos in ((x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1, y+1), (x+1, y-1), (x-1, y-1), (x-1, y+1)):
             
             # Check that the position is valid
             if 0 <= next_pos[0] < state.width() and 0 <= next_pos[1] < state.height():

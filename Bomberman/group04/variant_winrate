@@ -2,7 +2,7 @@
 
 # Script to calculate the winrate over scenarios
 
-num_runs=5
+num_runs=10
 
 for map in {1..2}
 do

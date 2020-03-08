@@ -22,10 +22,12 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        self.weights =  [152.6,-175.5,18.7,-50.2,17.9] # one from overnight training
+        self.weights =  [10.4 , -131.4   , -4.7 ,  -52.4  ,  16.2 ]  # angry boy
+        #self.weights = [73.0, -186.2, 2.0, -59.9, 15.8]
+        #self.weights =  [152.6,-175.5,18.7,-50.2,17.9] # one from overnight training
         #self.weights = [102.3, -181.6, 1.9, -52.9, 15.0]  # <--Outstanding move (scenario1)
         #self.weights = [73.0, -186.2, 2.0, -59.9, 15.8]  # <--Pretty good move (scenario2, all but v3)
-        self.safe_threshold = 6
+        self.safe_threshold = 9
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -246,7 +248,7 @@ class Player(QAgent):
     
     def A_star(self, state, start, goal):
         def g(state, pos):
-            return 2 if(state.wall_at(*pos)) else 1
+            return 3 if(state.wall_at(*pos)) else 1
         def h(state, pos):
             return self.tile_dist(*pos, *goal)
         

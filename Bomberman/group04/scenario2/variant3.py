@@ -27,5 +27,6 @@ g.add_character(agent)
 final_weights = [203.2, -143.4, 2.9, -50.2, 3.0]
 agent.set_weights(final_weights)
 agent.set_safe_threshold(18)
+
 # Run!
 g.go(100)

@@ -246,7 +246,7 @@ class Player(QAgent):
     
     def A_star(self, state, start, goal):
         def g(state, pos):
-            return 2 if(state.wall_at(*pos)) else 1
+            return 3 if(state.wall_at(*pos)) else 1
         def h(state, pos):
             return self.tile_dist(*pos, *goal)
         

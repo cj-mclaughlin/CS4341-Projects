@@ -27,7 +27,7 @@ def dist_to_monster(state, action, character):
     for monsterlist in state.monsters.values():
         for monster in monsterlist:
             path = A_star(state, new_loc, (monster.x, monster.y))
-            if path is not None and len(path) < shortest_len:
+            if len(path) < shortest_len:
                 shortest_path = path
                 shortest_len = len(path)
 
@@ -49,7 +49,7 @@ def dist_to_exit(state, action, character):
     path = A_star(state, new_loc, state.exitcell)
 
     # No path found
-    if path is None:
+    if wall_in_path(state, path):
         return 0
 
     # Feature is inversely proportional to distance
@@ -150,7 +150,7 @@ def no_path_bomb(state, action, character):
     """Feature returns 1 if exit path blocked, 0 if available or about to be freed by bomb"""
     new_loc = post_action_location(state, action, character)
     path = A_star(state, new_loc, state.exitcell)
-    if path is None:
+    if wall_in_path(state, path):
         # No path. Can bomb make path?
         if action == actions.Action.BOMB:
             for i in range(1, state.expl_range + 1):
@@ -241,6 +241,15 @@ def A_star(state, start, goal):
         cur_coor = came_from[cur_coor]
         path.insert(0, cur_coor)
     return path
+
+
+# Returns true if one of the tiles in the given path is a wall
+def wall_in_path(state, path):
+    for loc in path:
+        if loc is not None and state.wall_at(*loc):
+            return True
+    return False
+
 
 # Returns the locaton of character after taking action in state
 # PARAM[SensedWorld] state: the current state of the map

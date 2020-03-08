@@ -22,8 +22,8 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        self.weights = [102.3, -181.6, 15.9, -52.9, 3.0]  # <--Outstanding move
-        # self.weights = [1, -10, -3, -8, 1] # TODO fix initialization
+        #self.weights = [102.3, -181.6, 15.9, -52.9, 3.0]  # <--Outstanding move (scenario1)
+        self.weights = [102.3, -181.6, -15.9, -52.9, 3.0]  # <--Pretty good move (scenario2)
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -96,10 +96,10 @@ class Player(QAgent):
     
     # checks if we are in danger range of bomb or monster
 
-    def is_safe(self, state, threshold = 5):
+    def is_safe(self, state, threshold = 8):
         best_path_vec = self.find_best_path_vector(state)
-        closest_monster_dist = self.dist_to_nearest_monster(state, best_path_vec)
-        return not(closest_monster_dist <= threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
+        closest_monster_dist = self.dist_to_nearest_monster(state)
+        return not(closest_monster_dist < threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search
@@ -140,12 +140,10 @@ class Player(QAgent):
     #Finds the best 
     def find_best_path_vector(self, state):
         loc = (self.x, self.y)
-        return self.A_star(state, loc, state.exitcell)
+        return self.A_star(state, loc, state.exitcell)[0]
 
-    def dist_to_nearest_monster(self, state, movement_vec):
-        """Check if we are getting closer/further from a monster"""
-        search_radius = 5
-        new_x, new_y = self.x + movement_vec[0], self.y + movement_vec[1]
+    def dist_to_nearest_monster(self, state):
+        """Get distance from closest monster"""
         monsters = self.find_monsters(state)
         
         if monsters is None:
@@ -154,7 +152,8 @@ class Player(QAgent):
         else:
             closest_monster_dist = math.inf
             for m in monsters:
-                monster_dist = self.tile_dist(new_x, new_y, m[0], m[1])
+                monster_dist = self.A_star(state, (self.x, self.y), m)[1]
+                print(monster_dist)
                 if monster_dist < closest_monster_dist:
                     closest_monster_dist = monster_dist
             return closest_monster_dist
@@ -260,8 +259,8 @@ class Player(QAgent):
         cur_coor = current
         while(came_from[cur_coor] != start):
             cur_coor = came_from[cur_coor]
-        
-        return (cur_coor[0] - start[0], cur_coor[1] - start[1])
+
+        return (cur_coor[0] - start[0], cur_coor[1] - start[1]), cost_so_far[goal] / 2
 
 class ExploitationAgent(QAgent):
     def __init__(self, name, avatar, x, y):

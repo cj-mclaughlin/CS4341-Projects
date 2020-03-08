@@ -25,7 +25,7 @@ class Trainer():
     # Evaluation of agent against sub scenarios
     # PARAM[filename] training_pickle: serialized copy of list of scenarios we want to train against
     def evaluate_winrate(self):
-        num_scenarios = 6
+        num_scenarios = 3
         num_runs_per_scenario = 5
         
         old_epsilon = self.agent.epsilon
@@ -36,38 +36,36 @@ class Trainer():
         self.agent = exploitation
         
         # TODO potentially serialize scenarios
-        
-        scenarios = []
-        for i in range(1, num_scenarios+ 1):
-            # Create scenario
-            map_file = "scenarios/map"+str(i)+".txt"
-            g = TrainingScenario.fromfile(map_file)
-            scenarios.append(g)
-            
-            # Random drop agent and a monster
-            # Drop agent in first or second row
-            self.agent.x, self.agent.y = random.randrange(0, g.world.width()), random.randint(0,1)
-
-            g.set_reward_function(self.reward)
-            
-            max_x = max(g.world.width(), self.agent.x+5)
-            monster_x, monster_y = random.randrange(0, g.world.width()), random.randint(self.agent.y+5, self.agent.y+6)
-
-            # TODO think if we should include stupid monsters
-            g.add_monster(SelfPreservingMonster("selfpreserving", "S", monster_x, monster_y, 2))
-
-            g.set_agent(self.agent)
-        
-        scenario_winrate = {i: 0 for i in range(len(scenarios))}
+                
+        scenario_winrate = {i: 0 for i in range(num_scenarios)}
 
         # Loop through playing scenarios and get win rate for each scenario
-        for i in range(len(scenarios)):
+        for i in range(num_scenarios):
             num_wins = 0
             for j in range(num_runs_per_scenario):
-                scenarios[i].add_agent() # add its agent to the game
+                # Create scenario
+                map_file = "scenarios/map"+str(i + 6)+".txt"
+                g = TrainingScenario.fromfile(map_file)
+                
+                # Random drop agent and a monster
                 # Drop agent in first or second row
                 self.agent.x, self.agent.y = random.randrange(0, g.world.width()), random.randint(0,1)
-                won = scenarios[i].go(freeze_weights = True)
+
+                g.set_reward_function(self.reward)
+                
+                max_x = max(g.world.width(), self.agent.x+5)
+                monster_x, monster_y = random.randrange(0, g.world.width()), random.randint(self.agent.y+5, self.agent.y+6)
+
+                # TODO think if we should include stupid monsters
+                g.add_monster(SelfPreservingMonster("selfpreserving", "S", monster_x, monster_y, 2))
+
+                g.set_agent(self.agent)
+
+                print('game', i, 'run', j)
+                g.add_agent() # add its agent to the game
+                # Drop agent in first or second row
+                self.agent.x, self.agent.y = random.randrange(0, g.world.width()), random.randint(0,1)
+                won = g.go(freeze_weights = True)
                 if(won):
                     num_wins += 1
             
@@ -126,10 +124,10 @@ class Trainer():
     def random_scenario(self):
         # maps
         p, d, mapfiles = next(os.walk("scenarios/"))
-        maps = ["scenarios/map"+str(i)+".txt" for i in range(1,len(mapfiles)+1)]
+        maps = ["scenarios/map"+str(i)+".txt" for i in range(7,len(mapfiles)+1)]
         
         # Select Map
-        rand_map = maps[random.randrange(0,6)]
+        rand_map = maps[random.randrange(0,3)]
 
         # Game object
         g = TrainingScenario.fromfile(rand_map)

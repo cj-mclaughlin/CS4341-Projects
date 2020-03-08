@@ -109,12 +109,19 @@ class Player(QAgent):
         return not (closest_monster_dist < self.safe_threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
     
     def monster_on_path(self, state, best_path_vec):
+        # If no path, we're probably in danger from behind anyway
+        path = fn.A_star(state, (self.x, self.y), state.exitcell)
+        if fn.wall_in_path(state, path):
+            return True
+
         # Get action
         action = Action.STILL
         for a in ActionDirections:
             if ActionDirections[a] == best_path_vec:
                 action = a
                 break
+
+        # Check threat
         threat = fn.monster_threat(state, action, self)
         return threat >= 0.5
 

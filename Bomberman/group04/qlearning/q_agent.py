@@ -104,7 +104,19 @@ class Player(QAgent):
     def is_safe(self, state):
         best_path_vec = self.find_best_path_vector(state)
         closest_monster_dist = self.dist_to_nearest_monster(state)
-        return not(closest_monster_dist < self.safe_threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
+        if not self.monster_on_path(state, best_path_vec):
+            return not self.in_bomb_zone(state, self.x, self.y), best_path_vec
+        return not (closest_monster_dist < self.safe_threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
+    
+    def monster_on_path(self, state, best_path_vec):
+        # Get action
+        action = Action.STILL
+        for a in ActionDirections:
+            if ActionDirections[a] == best_path_vec:
+                action = a
+                break
+        threat = fn.monster_threat(state, action, self)
+        return threat >= 0.5
 
     def should_place_bomb(self, state, best_next_move_vec):
         #No possible moves from pathplanning search

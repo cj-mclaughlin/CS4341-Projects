@@ -22,7 +22,8 @@ from queue import PriorityQueue
 class QAgent(CharacterEntity):
     def __init__(self, name, avatar, x, y):
         self.feature_functions = fn.feature_functions
-        self.weights = [1, -10, -3, -8, 1] # TODO fix initialization
+        self.weights = [102.3, -181.6, 15.9, -52.9, 3.0]  # <--Outstanding move
+        # self.weights = [1, -10, -3, -8, 1] # TODO fix initialization
         super().__init__(name, avatar, x, y)
 
     def set_weights(self, weights):
@@ -105,8 +106,8 @@ class Player(QAgent):
         return state.wall_at(best_next_move_vec[0], best_next_move_vec[1])
 
     def do(self, world):
-        is_safe, best_path_vec = self.is_safe(world)
-        if(is_safe):
+        safe, best_path_vec = self.is_safe(world)
+        if(safe):
             print("I think im safe")
             print(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1])))
             if(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1]))):
@@ -165,7 +166,7 @@ class Player(QAgent):
     # PARAM[int] y2: Y value of the second point
     # RETURN[int] : the manhattan distance between two points
     def tile_dist(self, x1, y1, x2, y2):
-        """Manhattan distance"""
+        """Step distance without walls"""
         return max(abs(x1-x2), abs(y1-y2))
 
     # Calculates the Euclidean distance between two points

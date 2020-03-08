@@ -29,4 +29,4 @@ g.add_character(agent)
 agent.set_safe_threshold(10)
 
 # Run!
-g.go(200)
+g.go(100)

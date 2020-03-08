@@ -26,4 +26,4 @@ g.add_character(agent)
 # agent.safe_threshold = 8
 
 # Run!
-g.go(10)
+g.go(1)

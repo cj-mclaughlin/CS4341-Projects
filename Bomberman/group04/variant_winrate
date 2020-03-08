@@ -1,14 +1,25 @@
 #/bin/bash
 
+# Script to calculate the winrate over scenarios
 
-for map in 1 2
+num_runs=5
+
+for map in {1..2}
 do
-    for varnum in 1 2 3 4 5
+    for varnum in {1..5}
     do 
-        if [[ $(cd scenario$map && python3 variant$varnum.py | grep exit && cd .. | ls -A) ]]; then
-            echo "won map $map variant $varnum"
-        else
-            echo "lost map $map variant $varnum"
-        fi
+        wins=0
+        losses=0
+        for run in $(seq 1 $num_runs)
+        do 
+            if [[ $(cd scenario$map && python3 variant$varnum.py | grep exit && cd .. | ls -A) ]]; then
+                # echo "won map $map variant $varnum"
+                wins=$((wins+1))
+            else
+                # echo "lost map $map variant $varnum"
+                losses=$((losses+1))
+            fi
+        done
+        echo "winrate on map $map variant $varnum is $wins / $num_runs"
     done
 done

@@ -13,7 +13,7 @@ sys.path.insert(1, '../group04')
 from qlearning import q_agent
 
 # Create the game
-random.seed(123) # TODO Change this if you want different random choices
+#random.seed(123) # TODO Change this if you want different random choices
 g = Game.fromfile('map.txt')
 g.add_monster(SelfPreservingMonster("selfpreserving", # name
                                     "S",              # avatar
@@ -29,4 +29,4 @@ agent.set_weights(final_weights)
 agent.set_safe_threshold(18)
 
 # Run!
-g.go(100)
+g.go(1)

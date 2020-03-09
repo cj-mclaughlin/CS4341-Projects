@@ -30,21 +30,33 @@ class QAgent(CharacterEntity):
         self.safe_threshold = 9
         super().__init__(name, avatar, x, y)
 
+    # Sets the weights used for agent's intelligent behavior
+    # PARAM[list(float)] weights: the weight values to use, in order of their features
     def set_weights(self, weights):
+        """Set the weights to use with feature functions"""
         self.weights = weights
-
+    
+    # Sets the threshold distance for safety from monsters
+    # PARAM[int] new_thresh: the new value for the threshold
     def set_safe_threshold(self, new_thresh):
+        """Set the threshold for determining safety"""
         self.safe_threshold = new_thresh
-
+    
+    # Evaluate the utility of a given action in the given state
+    # PARAM[SensedWorld] state: the state of the map to evaluate with
+    # PARAM[Action] action: the action to evaluate
     def evaluate_move(self, state, action):
+        """Calculate the utility of a given action"""
         move_util = 0
-        #print("Evaluating action {}".format(action))
         for i in range(len(self.weights)):
-            #print("fn {} ({}*{}) yielding {}".format(i, self.weights[i], self.feature_functions[i](state, action, self), self.weights[i] * self.feature_functions[i](state, action, self)))
             move_util += self.weights[i] * self.feature_functions[i](state, action, self)
         return move_util
     
+    # Determine if the given action will do anything when executed
+    # PARAM[SensedWorld] world: the current state of the map
+    # PARAM[Action] action: the action to evaluate
     def valid_action(self, world, action):
+        """Determing if an action will do something when perfomed"""
         if action is None:
             return False
         # Check bomb
@@ -59,7 +71,7 @@ class QAgent(CharacterEntity):
         return False
     
     # Determine the best action the agent can take
-    # PARAM [World] state: the current state that the agent is in
+    # PARAM[SensedWorld] state: the current state that the agent is in
     # RETURN [Action]: the best action that the agent can take 
     def determine_best_action(self, state):
         """Find the best available move"""
@@ -67,16 +79,20 @@ class QAgent(CharacterEntity):
         best_action = Action.STILL
         best_action_val = -math.inf
         for a in Action:
-            #print("{} value {}".format(a, self.evaluate_move(state, a)))
             if self.valid_action(state, a) and self.evaluate_move(state, a) > best_action_val:
                 best_action = a
                 best_action_val = self.evaluate_move(state, a)
-        #print(best_action, self.x, self.y)
         return best_action
+
 
 class Player(QAgent):
     
+    # Determine if the given location is in range of a present or near future explosion
+    # PARAM[SensedWorld] state: the current state of the world
+    # PARAM[int] x: the x-coordinate to test
+    # PARAM[int] y: the y-coordinate to test
     def in_bomb_zone(self, state, x, y):
+        """Check if location has or will soon have explosions"""
         bomb = None
         ticking_bomb, in_explosion_radius = False, False
         for b in state.bombs.values():
@@ -86,12 +102,12 @@ class Player(QAgent):
         if bomb is not None:
             ticking_bomb = True
 
-        # checks for active bomb
+        # Checks for active bomb
         if (ticking_bomb and bomb.timer <= 1):
-            # check if we are in the x component of explosion
+            # Check if we are in the x component of explosion
             if (abs(x - bomb.x) <= 4 and y == bomb.y):
                 in_explosion_radius = True
-            # y component
+            # Check y component
             elif (abs(y - bomb.y) <= 4 and x == bomb.x):
                 in_explosion_radius = True
         
@@ -101,16 +117,20 @@ class Player(QAgent):
         else: 
             return False
     
-    # checks if we are in danger range of bomb or monster
-
+    # Checks if we are in danger of a bomb or monster
+    # PARAM[SensedWorld] state: the current state of the world
     def is_safe(self, state):
+        """Check if this state is safe for the agent"""
         best_path_vec = self.find_best_path_vector(state)
         if not self.monster_on_path(state):
             return not self.in_bomb_zone(state, self.x, self.y), best_path_vec
         closest_monster_dist = self.dist_to_nearest_monster(state)
         return not (closest_monster_dist < self.safe_threshold or self.in_bomb_zone(state, self.x, self.y)), best_path_vec
     
+    # Check if a monster is below us or if our exit path is blocked, leaving us vulnerable
+    # PARAM[SensedWorld] state: the current state of the world
     def monster_on_path(self, state):
+        """Check if a monster threatens our safety on path to the exit"""
         max_y = 0
         for mlist in state.monsters.values():
             for monster in mlist:
@@ -121,26 +141,30 @@ class Player(QAgent):
             return fn.wall_in_path(state, exit_path)
         # Monster is ahead
         return True
-
+    
+    # Checks if our best path is leading us to a wall that must be blown up
+    # PARAM[SensedWorld] state: the current state of the world
+    # PARAM[tuple(int, int)]
     def should_place_bomb(self, state, best_next_move_vec):
-        #No possible moves from pathplanning search
+        """Check if we must bomb to continue on best path"""
+        # No possible moves from pathplanning search
         return state.wall_at(best_next_move_vec[0], best_next_move_vec[1])
-
+    
+    # Perform the agent's turn
+    # PARAM[SensedWorld] state: the current state of the world
     def do(self, world):
         safe, best_path_vec = self.is_safe(world)
         if(safe):
-            print("I think im safe")
-            print(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1])))
             if(self.should_place_bomb(world, (self.x+ best_path_vec[0], self.y + best_path_vec[1]))):
                 self.place_bomb()
                 self.move(0, 0)
             else:
                 # Make move to best postition based on best path
-                # first make sure we arent running into a dangerous bomb/explosion
+                # First make sure we arent running into a dangerous bomb/explosion
                 bomb_danger = False
                 next_x, next_y = self.x + best_path_vec[0], self.y + best_path_vec[1]
                 
-                # dont walk over bombs that are gonna explode soon
+                # Don't walk over bombs that are gonna explode soon
                 if self.in_bomb_zone(world, next_x, next_y):
                     bomb_danger = True
                 if (bomb_danger): # override moving to death
@@ -148,7 +172,6 @@ class Player(QAgent):
                 else:
                     self.move(best_path_vec[0], best_path_vec[1])
         else:
-            print("Im in danger")
             best_action = self.determine_best_action(world)
             if best_action == Action.BOMB:
                 self.place_bomb()
@@ -158,13 +181,17 @@ class Player(QAgent):
                 self.move(direction[0], direction[1])
                 pass
 
-    #Finds the best 
+    # Finds the best next step to victory
+    # PARAM[SensedWorld] state: the current state of the world
     def find_best_path_vector(self, state):
+        """Finds the best next step to victory"""
         loc = (self.x, self.y)
         return self.A_star(state, loc, state.exitcell)[0]
 
+    # Calculate the A* path cost to the nearest monster
+    # PARAM[SensedWorld] state: the current state of the world
     def dist_to_nearest_monster(self, state):
-        """Get distance from closest monster"""
+        """Get A* distance to closest monster"""
         monsters = self.find_monsters(state)
         
         if monsters is None:
@@ -188,15 +215,6 @@ class Player(QAgent):
         """Step distance without walls"""
         return max(abs(x1-x2), abs(y1-y2))
 
-    # Calculates the Euclidean distance between two points
-    # PARAM[int] x1: X value of the first point
-    # PARAM[int] y1: Y value of the first point
-    # PARAM[int] x2: X value of the second point
-    # PARAM[int] y2: Y value of the second point
-    # RETURN[int] : the Euclidean distance between two points
-    def euclidean_dist(self, x1,y1, x2, y2):
-        return math.sqrt(pow(x2-x1,2) + pow(y2-y1,2))
-
     # Helper method to find monsters
     # PARAM[SensedWorld] state: the current state of the map
     def find_monsters(self, state):
@@ -209,47 +227,18 @@ class Player(QAgent):
                     monsters.append((w,h))
         return monsters
 
-    # BFS for optimal path
-    # PARAM[SensedWorld] state: the current state of the board
-    # PARAM[tuple(int, int)] start: starting coordinates
-    # PARAM[tuple(int, int)] goal: goal coordinates
-    def bfs(self, state, start, goal):
-        queue = collections.deque([[start]])
-        seen = set([start])
 
-        # perform bfs, leaving us with path to exit
-        exit_found = False
-        while queue:
-            path = queue.popleft()
-            x, y = path[-1]
-
-            # check if we have reached exit
-            if x == goal[0] and y == goal[1]:
-                exit_found = True
-                break
-
-            # Add neighbors to queue
-            for x2, y2 in ((x+1,y), (x-1,y), (x,y+1), (x,y-1), (x+1, y+1), (x+1, y-1), (x-1, y-1), (x-1, y+1)):
-                if 0 <= x2 < state.width() and 0 <= y2 < state.height() and not state.wall_at(x2, y2) and (x2, y2) not in seen:
-                    queue.append(path + [(x2, y2)])
-                    seen.add((x2, y2))
-
-        if exit_found:
-            return path[1][0] - start[0], path[1][1] - start[1]
-        
-        # No path
-        return None
-    
+    # Finds an optimal path from start to goal using the A* algorithm
+    # PARAM[SensedWorld] state: the current state of the map
+    # PARAM[tuple(int, int)] start: the starting coordinates
+    # PARAM[tuple(int, int)] goal: the goal coordinates
+    # RETURN[tuple(int, int), int] : the direction vector for the next step and the cost to the goal
     def A_star(self, state, start, goal):
+        """Perform A* search with walls cost 3"""
         def g(state, pos):
             return 3 if(state.wall_at(*pos)) else 1
         def h(state, pos):
             return self.tile_dist(*pos, *goal)
-        
-        # @dataclass(order = True)
-        # class prioritized_item:
-        #     priority: int
-        #     item: Any=field(compare=False)
 
         frontier = PriorityQueue()
         frontier.put((0, start))
@@ -279,17 +268,20 @@ class Player(QAgent):
                         frontier.put((priority, next_pos))
                         came_from[next_pos] = current
 
-        #Loop back and find optimal move vector
+        # Loop back and find optimal move vector
         cur_coor = current
         while(came_from[cur_coor] != start):
             cur_coor = came_from[cur_coor]
         
         return (cur_coor[0] - start[0], cur_coor[1] - start[1]), cost_so_far[goal]
 
+
 class ExploitationAgent(QAgent):
     def __init__(self, name, avatar, x, y):
         super().__init__(name, avatar, x, y)
     
+    # Perform the agent's turn (always best action)
+    # PARAM[SensedWorld] state: the current state of the map
     def do(self, world):
         """Find and perform best available move"""
         best_action = self.determine_best_action(world)
@@ -319,20 +311,21 @@ class ExplorationAgent(QAgent):
     # PARAM[Action] next_action: the best action after entering next state (argmax)
     # PARAM[float] discount: discounting rate
     def update_weights(self, reward_fn, current_state, next_state, discount=0.9):
+        """Update weights based on rewards while training"""
         current_action = self.last_action
         reward = rewardfunctions.reward(current_state, current_action, self)
-        #print("reward in update_weights evaluating to {}".format(reward))
         current_utility = self.evaluate_move(current_state, current_action)
         next_action = self.determine_best_action(next_state)
         # delta = r + v(max(a')(Q(s',a'))) - Q(s,a)
-        delta = (reward + (discount*self.evaluate_move(next_state, next_action))) - current_utility
-        #print("delta value found to be {}".format(delta))
+        delta = (reward + (discount*self.evaluate_move(next_state, next_action))) - current_utility\
         # wi = wi + a*delta*fi(s,a)
         for w_idx in range(len(self.weights)):
-            #print("weight {}, val {}, changing by {}".format(w_idx, self.weights[w_idx], self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)))
             self.weights[w_idx] = self.weights[w_idx] + self.alpha*delta*self.feature_functions[w_idx](current_state, current_action, self)
 
+    # Perform the agent's turn (epsilon-greedy)
+    # PARAM[SensedWorld] state: the current state of the map
     def do(self, world):
+        """Perform a move using epsilon greedy algorithm"""
         x = random.random()
         if(x < self.epsilon):
             best_action = self.generate_random_action()
@@ -347,11 +340,16 @@ class ExplorationAgent(QAgent):
         else:
             direction = ActionDirections[best_action]
             self.move(direction[0], direction[1])
-
+    
+    # Decrease epsilon by self.epsilon_decrement
     def update_epsilon(self):
+        """Decrement epsilon"""
         self.epsilon -= self.epsilon_decrement
-
+    
+    # Select a random action
+    # RETURN[Action] : any random action
     def generate_random_action(self):
+        """Select a random action"""
         action_num = random.randint(1,10)
         action = Action(action_num)
         return action

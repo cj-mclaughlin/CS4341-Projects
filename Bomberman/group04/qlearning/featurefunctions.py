@@ -15,6 +15,7 @@ import numpy as np
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[float] : feature value [0, 1] for distance to closest monster
 def dist_to_monster(state, action, character):
     """Feature value that is higher when closer to monster"""
     new_loc = post_action_location(state, action, character)
@@ -41,6 +42,7 @@ def dist_to_monster(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[float] : feature value [0, 1] for distance to exit
 def dist_to_exit(state, action, character):
     """Feature value that is higher when closer to exit"""
     new_loc = post_action_location(state, action, character)
@@ -58,6 +60,7 @@ def dist_to_exit(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[float] : feature value [0, 1] for monster's threat based on direction
 def monster_threat(state, action, character):
     """Feature value that is higher when monster poses more of a threat to the path"""
     new_x, new_y = post_action_location(state, action, character)
@@ -97,6 +100,7 @@ def monster_threat(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[int] : feature value [0, 1] whether a bomb will explode at the new location or not
 def bomb_danger_zone(state, action, character):
     """Checks if action places character in explosion range"""
     new_x, new_y = post_action_location(state, action, character)
@@ -141,6 +145,7 @@ def bomb_danger_zone(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[int] : feature value [0, 1] for if the path out is blocked
 def no_path_bomb(state, action, character):
     """Feature returns 1 if exit path blocked, 0 if available or about to be freed by bomb"""
     new_loc = post_action_location(state, action, character)
@@ -164,6 +169,7 @@ def no_path_bomb(state, action, character):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[tuple(int, int)] start: the starting coordinates
 # PARAM[tuple(int, int)] goal: the goal coordinates
+# RETURN[list(tuple(int, int))] : path from start to goal as a list of tuple coordinates
 def A_star(state, start, goal):
     """Performs A* search to find a path from start to goal"""
     def g(state, pos):
@@ -222,6 +228,7 @@ def tile_dist(x1, y1, x2, y2):
 # Returns true if one of the tiles in the given path is a wall
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[list(tuple(int, int))] path: the path to evaluate
+# RETURN[boolean] : True if a wall exists in the given path, False otherwise
 def wall_in_path(state, path):
     for loc in path:
         if loc is not None and state.wall_at(*loc):
@@ -233,6 +240,7 @@ def wall_in_path(state, path):
 # PARAM[SensedWorld] state: the current state of the map
 # PARAM[Action] action: the action to evaluate
 # PARAM[MovableEntity] character: the bomberman character this is evaluating for
+# RETURN[tuple(int, int)] : coordinates of location after taking the given action
 def post_action_location(state, action, character):
     """Returns where we would be after taking specified action"""
     x_dir, y_dir = actions.ActionDirections[action]

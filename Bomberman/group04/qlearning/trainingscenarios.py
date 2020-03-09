@@ -15,10 +15,19 @@ from monsters.selfpreserving_monster import SelfPreservingMonster
 
 
 class TrainingScenario(Game):
+    # Initializes a Training Scenario Object
+    # PARAM[int] width: the width of the board to initialize
+    # PARAM[int] height: the height of the board to initialize
+    # PARAM[int] max_time: the max time this game will be played
+    # PARAM[int] bomb_time: the fuse length of the bombs in this game
+    # PARAM[int] expl_duration: the length of time an explosion will stay on the map
+    # PARAM[int] expl_range: how far in each direction the explosion will go
+    # PARAM[string] sprite_dir: the directory where sprite bitmaps are stored
     def __init__(self, width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir="../../bomberman/sprites/"):
         super().__init__(width, height, max_time, bomb_time, expl_duration, expl_range, sprite_dir)
 
     # set agent for scenario
+    # PARAM[MovableEntity] agent: the agent which will be used in this game
     def set_agent(self, agent):
         self.agent = agent
 
@@ -26,10 +35,15 @@ class TrainingScenario(Game):
     def add_agent(self):
         super().add_character(self.agent)
 
+    # Sets the function that can be called to get a reward for each game state
+    # PARAM[function] reward_fn: the function which will be called to get a reward
     def set_reward_function(self, reward_fn):
         self.reward_fn = reward_fn
 
     # Overload go function to run
+    # PARAM [int] wait: length of time to wait before the next step is completed. If 0 passed in wait for enter to be pressed before continuing
+    # PARAM [boolean] freeze_weights: Whether or not weights should be changed throughout this game
+    # PARAM [boolean] draw: whether to draw the game board each turn
     # RETURN [Boolean]: whether or not the game was completed by the agent
     def go(self, wait=1, freeze_weights = True, draw=False):
         if wait == 0:

@@ -45,6 +45,7 @@ class QAgent(CharacterEntity):
     # Evaluate the utility of a given action in the given state
     # PARAM[SensedWorld] state: the state of the map to evaluate with
     # PARAM[Action] action: the action to evaluate
+    # RETURN[float] : the utility of the given action
     def evaluate_move(self, state, action):
         """Calculate the utility of a given action"""
         move_util = 0
@@ -55,6 +56,7 @@ class QAgent(CharacterEntity):
     # Determine if the given action will do anything when executed
     # PARAM[SensedWorld] world: the current state of the map
     # PARAM[Action] action: the action to evaluate
+    # RETURN[boolean] : True if the action can be performed, False otherwise
     def valid_action(self, world, action):
         """Determing if an action will do something when perfomed"""
         if action is None:
@@ -72,7 +74,7 @@ class QAgent(CharacterEntity):
     
     # Determine the best action the agent can take
     # PARAM[SensedWorld] state: the current state that the agent is in
-    # RETURN [Action]: the best action that the agent can take 
+    # RETURN[Action]: the best action that the agent can take 
     def determine_best_action(self, state):
         """Find the best available move"""
         bomb = False
@@ -91,6 +93,7 @@ class Player(QAgent):
     # PARAM[SensedWorld] state: the current state of the world
     # PARAM[int] x: the x-coordinate to test
     # PARAM[int] y: the y-coordinate to test
+    # RETURN[boolean] : True if the location is in danger of exploding, False otherwise
     def in_bomb_zone(self, state, x, y):
         """Check if location has or will soon have explosions"""
         bomb = None
@@ -119,6 +122,7 @@ class Player(QAgent):
     
     # Checks if we are in danger of a bomb or monster
     # PARAM[SensedWorld] state: the current state of the world
+    # RETURN[boolean] : True if the agent is safe and may proceed to exit, False otherwise
     def is_safe(self, state):
         """Check if this state is safe for the agent"""
         best_path_vec = self.find_best_path_vector(state)
@@ -129,6 +133,7 @@ class Player(QAgent):
     
     # Check if a monster is below us or if our exit path is blocked, leaving us vulnerable
     # PARAM[SensedWorld] state: the current state of the world
+    # RETURN[boolean] : True if a monster threatens the path to exit, False otherwise
     def monster_on_path(self, state):
         """Check if a monster threatens our safety on path to the exit"""
         max_y = 0
@@ -144,7 +149,8 @@ class Player(QAgent):
     
     # Checks if our best path is leading us to a wall that must be blown up
     # PARAM[SensedWorld] state: the current state of the world
-    # PARAM[tuple(int, int)]
+    # PARAM[tuple(int, int)] best_next_move_vec: the location the A* algorithm would like to go to
+    # RETURN[boolean] : True if the location needs bombing, False otherwise
     def should_place_bomb(self, state, best_next_move_vec):
         """Check if we must bomb to continue on best path"""
         # No possible moves from pathplanning search
@@ -183,6 +189,7 @@ class Player(QAgent):
 
     # Finds the best next step to victory
     # PARAM[SensedWorld] state: the current state of the world
+    # RETURN[tuple(int, int)] : the direction vector to move in to follow the path
     def find_best_path_vector(self, state):
         """Finds the best next step to victory"""
         loc = (self.x, self.y)
@@ -190,6 +197,7 @@ class Player(QAgent):
 
     # Calculate the A* path cost to the nearest monster
     # PARAM[SensedWorld] state: the current state of the world
+    # RETURN[int] : the A* cost to get to the closest monster
     def dist_to_nearest_monster(self, state):
         """Get A* distance to closest monster"""
         monsters = self.find_monsters(state)
@@ -217,6 +225,7 @@ class Player(QAgent):
 
     # Helper method to find monsters
     # PARAM[SensedWorld] state: the current state of the map
+    # RETURN[list(tuple(int, int))] : a list of all monster coordinate tuples
     def find_monsters(self, state):
         """Returns list of coordinates with monsters"""
         monsters = []
@@ -226,7 +235,6 @@ class Player(QAgent):
                 if monster is not None:
                     monsters.append((w,h))
         return monsters
-
 
     # Finds an optimal path from start to goal using the A* algorithm
     # PARAM[SensedWorld] state: the current state of the map

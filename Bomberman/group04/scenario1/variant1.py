@@ -19,10 +19,11 @@ from qlearning import q_agent
 g = Game.fromfile('map.txt')
 
 # TODO finalize weights
-agent = q_agent.ExploitationAgent("me", "C", 0, 0)
-# final_weights = [...]
-# agent.set_weights(final_weights)
+agent = q_agent.Player("me", "C", 0, 0)
 g.add_character(agent)
+# final_weights = [102.3, -181.6, 1.9, -52.9, 3.0]
+# agent.set_weights(final_weights)
+# agent.safe_threshold = 8
 
 # Run!
-g.go()
+g.go(1)

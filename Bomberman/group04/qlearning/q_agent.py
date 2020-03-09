@@ -27,7 +27,7 @@ class QAgent(CharacterEntity):
         #self.weights =  [152.6,-175.5,18.7,-50.2,17.9] # one from overnight training
         #self.weights = [102.3, -181.6, 1.9, -52.9, 15.0]  # <--Outstanding move (scenario1)
         #self.weights = [73.0, -186.2, 2.0, -59.9, 15.8]  # <--Pretty good move (scenario2, all but v3)
-        self.safe_threshold = 9
+        self.safe_threshold = 8
         super().__init__(name, avatar, x, y)
 
     # Sets the weights used for agent's intelligent behavior

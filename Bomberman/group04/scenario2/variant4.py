@@ -24,8 +24,6 @@ g.add_monster(SelfPreservingMonster("aggressive", # name
 # TODO finalize weights
 agent = q_agent.Player("me", "C", 0, 0)
 g.add_character(agent)
-# final_weights = [73.0, -186.2, 2.0, -59.9, 15.8]
-# agent.set_weights(final_weights)
 
 
 # Run!

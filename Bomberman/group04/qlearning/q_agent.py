@@ -4,8 +4,8 @@ sys.path.insert(0, '../../bomberman')
 sys.path.insert(1, '..')
 
 from entity import CharacterEntity
-from actions import Action, ActionDirections
-import featurefunctions as fn
+from .actions import Action, ActionDirections
+from qlearning import featurefunctions as fn
 from game import Game
 import pygame
 import random

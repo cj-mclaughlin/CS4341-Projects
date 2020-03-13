@@ -5,7 +5,7 @@ import collections
 file_dir = os.path.dirname(__file__)
 sys.path.append(file_dir)
 
-import actions
+from qlearning import actions
 from queue import PriorityQueue
 
 import numpy as np
